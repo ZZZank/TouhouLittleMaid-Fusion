@@ -27,6 +27,18 @@ sourceSets.main.resources {
 }
 
 repositories {
+    repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    url "https://cursemaven.com"
+                }
+            }
+            filter {
+                includeGroup "curse.maven"
+            }
+        }
+    }
     // Add here additional repositories if required by some of the dependencies below.
 }
 
@@ -116,6 +128,11 @@ configurations {
 }
 
 dependencies {
+    // touhoulittlemaid-1.5.3-neoforge+mc1.21.1.jar
+    implementation("curse.maven:touhou-little-maid-355044:8061852")
+    // Mekanism-1.21.1-10.7.19.85.jar
+    implementation("curse.maven:mekanism-268560:7904058")
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-api:${jei_version}"
