@@ -34,6 +34,7 @@ public interface TouhouLittleMaidFusionRegistries {
         public static final TileEntityTypeDeferredRegister TILE_ENTITY_TYPES = new TileEntityTypeDeferredRegister(MODID);
         public static final TileEntityTypeRegistryObject<TileMaidFusionController> CONTROLLER = TILE_ENTITY_TYPES
             .mekBuilder(Blocks.CONTROLLER, TileMaidFusionController::new)
+            .serverTicker(TileMaidFusionController::tickServer)
             .build();
     }
 

@@ -2,6 +2,7 @@ package zank.mods.touhou_little_maid_fusion.huh;
 
 import java.util.UUID;
 
+import mekanism.common.inventory.container.slot.SlotOverlay;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -54,6 +55,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
     private PinSeatEntity pinSeatEntity;
     private boolean running = false;
     private int tickCounter = 0;
+    private long lastEnergyProduced = 0;
 
     public TileMaidFusionController(BlockPos pos, BlockState state) {
         super(TouhouLittleMaidFusionRegistries.Blocks.CONTROLLER, pos, state);
@@ -74,10 +76,12 @@ public class TileMaidFusionController extends TileEntityMekanism {
         inputSlot = builder.addSlot(BasicInventorySlot.at(
             stack -> stack.is(InitItems.SMART_SLAB_HAS_MAID.get()) || stack.is(InitItems.SMART_SLAB_EMPTY.get()),
             listener,
-            56,
-            35
+            146 - 16,
+            19
         ));
-        outputSlot = builder.addSlot(OutputInventorySlot.at(listener, 100, 35));
+        outputSlot = builder.addSlot(OutputInventorySlot.at(listener, 146 - 16, 51));
+        inputSlot.setSlotOverlay(SlotOverlay.INPUT);
+        outputSlot.setSlotOverlay(SlotOverlay.OUTPUT);
         return builder.build();
     }
 
@@ -124,6 +128,15 @@ public class TileMaidFusionController extends TileEntityMekanism {
         return running;
     }
 
+    public long getLastEnergyProduced() {
+        return lastEnergyProduced;
+    }
+
+    @Nullable
+    public EntityMaid getCachedMaid() {
+        return cachedMaid;
+    }
+
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
@@ -133,11 +146,11 @@ public class TileMaidFusionController extends TileEntityMekanism {
             validateMaidPresence();
         }
 
-        if (pinnedMaidUUID == null) {
+        if (pinnedMaidUUID == null && inputSlot.getStack().is(InitItems.SMART_SLAB_HAS_MAID) && outputSlot.isEmpty()) {
             tryPinMaid();
         }
 
-        if (pinnedMaidUUID != null) {
+        if (pinnedMaidUUID != null && inputSlot.getStack().is(InitItems.SMART_SLAB_EMPTY) && outputSlot.isEmpty()) {
             tryRecallMaid();
         }
 
@@ -150,27 +163,9 @@ public class TileMaidFusionController extends TileEntityMekanism {
     }
 
     private void tryPinMaid() {
-        ItemStack inputStack = inputSlot.getStack();
-        if (inputStack.isEmpty() || !inputStack.is(InitItems.SMART_SLAB_HAS_MAID.get())) {
-            return;
-        }
-
-        CustomData maidInfo = inputStack.get(InitDataComponent.MAID_INFO);
-        if (maidInfo == null) {
-            return;
-        }
-
-        CompoundTag maidCompound = maidInfo.copyTag();
-        if (!maidCompound.hasUUID("Owner")) {
+        CustomData maidInfo = inputSlot.getStack().get(InitDataComponent.MAID_INFO);
+        if (maidInfo == null || !maidInfo.contains("Owner")) {
             // @see com.github.tartaricacid.touhoulittlemaid.item.AbstractStoreMaidItem#spawnFromStore(...)
-            return;
-        }
-
-        ItemStack emptySlab = new ItemStack(InitItems.SMART_SLAB_EMPTY.get());
-        if (!outputSlot.getStack().isEmpty() && !ItemStack.isSameItemSameComponents(outputSlot.getStack(), emptySlab)) {
-            return;
-        }
-        if (outputSlot.getStack().getCount() >= outputSlot.getStack().getMaxStackSize()) {
             return;
         }
 
@@ -178,7 +173,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
 
         BlockPos spawnPos = getBlockPos().above(3);
         EntityMaid maid = new EntityMaid(level);
-        maid.load(maidCompound);
+        maid.load(maidInfo.copyTag());
         maid.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, 0, 0);
 
         level.addFreshEntity(maid);
@@ -189,7 +184,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
         maid.startRiding(seat);
         pinSeatEntity = seat;
 
-        outputSlot.insertItem(emptySlab, Action.EXECUTE, AutomationType.INTERNAL);
+        outputSlot.insertItem(InitItems.SMART_SLAB_EMPTY.toStack(), Action.EXECUTE, AutomationType.INTERNAL);
 
         level.playSound(null, getBlockPos(), SoundEvents.PLAYER_SPLASH, SoundSource.BLOCKS, 1.0F, 1.0F);
 
@@ -199,19 +194,6 @@ public class TileMaidFusionController extends TileEntityMekanism {
     }
 
     private void tryRecallMaid() {
-        ItemStack inputStack = inputSlot.getStack();
-        if (inputStack.isEmpty() || !inputStack.is(InitItems.SMART_SLAB_EMPTY.get())) {
-            return;
-        }
-
-        ItemStack maidSlab = new ItemStack(InitItems.SMART_SLAB_HAS_MAID.get());
-        if (!outputSlot.getStack().isEmpty() && !ItemStack.isSameItemSameComponents(outputSlot.getStack(), maidSlab)) {
-            return;
-        }
-        if (outputSlot.getStack().getCount() >= outputSlot.getStack().getMaxStackSize()) {
-            return;
-        }
-
         EntityMaid maid = getPinnedMaid();
         if (maid == null) {
             return;
@@ -298,7 +280,10 @@ public class TileMaidFusionController extends TileEntityMekanism {
 
         if (totalEnergy > 0) {
             energyContainer.insert(totalEnergy, Action.EXECUTE, AutomationType.INTERNAL);
+            lastEnergyProduced = totalEnergy;
             setChanged();
+        } else {
+            lastEnergyProduced = 0;
         }
     }
 

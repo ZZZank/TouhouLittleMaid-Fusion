@@ -2,5 +2,9 @@
   "itemGroup.touhou_little_maid_fusion": "Touhou Little Maid: Fusion",
   "block.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller",
   "item.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller",
-  "container.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller"
+  "container.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller",
+  "gui.touhou_little_maid_fusion.maid_pinned": "Maid Pinned",
+  "gui.touhou_little_maid_fusion.no_maid": "No Maid",
+  "gui.touhou_little_maid_fusion.favorability": "Favorability: %d",
+  "gui.touhou_little_maid_fusion.hunger": "Hunger: %d"
 }

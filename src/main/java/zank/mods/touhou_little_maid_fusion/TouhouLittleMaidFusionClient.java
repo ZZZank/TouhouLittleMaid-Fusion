@@ -1,11 +1,13 @@
 package zank.mods.touhou_little_maid_fusion;
 
 import mekanism.client.ClientRegistrationUtil;
+import net.minecraft.client.renderer.entity.NoopRenderer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import zank.mods.touhou_little_maid_fusion.huh.GuiMaidFusionController;
 
@@ -22,6 +24,14 @@ public class TouhouLittleMaidFusionClient {
             event,
             TouhouLittleMaidFusionRegistries.ContainerTypes.CONTROLLER,
             GuiMaidFusionController::new
+        );
+    }
+
+    @SubscribeEvent
+    public static void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(
+            TouhouLittleMaidFusionRegistries.EntityTypes.HAVE_A_SEAT_PLS.get(),
+            NoopRenderer::new
         );
     }
 }
