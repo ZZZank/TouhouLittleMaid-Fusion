@@ -1,7 +1,6 @@
 package zank.mods.touhou_little_maid_fusion.huh;
 
 import java.util.UUID;
-import java.util.function.Predicate;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,9 +33,9 @@ import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import zank.mods.touhou_little_maid_fusion.Config;
-import zank.mods.touhou_little_maid_fusion.FusionState;
 import zank.mods.touhou_little_maid_fusion.TouhouLittleMaidFusionRegistries;
 import zank.mods.touhou_little_maid_fusion.entity.PinSeatEntity;
+import zank.mods.touhou_little_maid_fusion.util.FusionState;
 
 /**
  * @author ZZZank
@@ -273,8 +272,8 @@ public class TileMaidFusionController extends TileEntityMekanism {
             return;
         }
 
-        FusionState fusionState = maid.getData(TouhouLittleMaidFusionRegistries.AttachmentTypes.FUSION_STATE.get());
-        if (!fusionState.isInFusion()) {
+        int fusionState = FusionState.get(maid);
+        if (!FusionState.inFusion(fusionState)) {
             return;
         }
 

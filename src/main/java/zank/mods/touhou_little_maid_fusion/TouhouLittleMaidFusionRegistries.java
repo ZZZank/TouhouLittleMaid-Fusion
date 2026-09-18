@@ -1,9 +1,11 @@
 package zank.mods.touhou_little_maid_fusion;
 
+import com.mojang.serialization.Codec;
 import mekanism.common.content.blocktype.Machine;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.registration.MekanismDeferredHolder;
 import mekanism.common.registration.impl.*;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -63,10 +65,11 @@ public interface TouhouLittleMaidFusionRegistries {
     class AttachmentTypes {
         public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
                 DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, MODID);
-        public static final Supplier<AttachmentType<FusionState>> FUSION_STATE = ATTACHMENT_TYPES.register(
+        public static final Supplier<AttachmentType<Integer>> FUSION_STATE = ATTACHMENT_TYPES.register(
             "fusion_state",
-            () -> AttachmentType.builder(FusionState::new)
-                .serialize(FusionState.CODEC)
+            () -> AttachmentType.builder(() -> 0)
+                .serialize(Codec.INT)
+                .sync(ByteBufCodecs.VAR_INT)
                 .build()
         );
     }

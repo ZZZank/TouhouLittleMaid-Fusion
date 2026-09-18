@@ -1,5 +1,12 @@
 package zank.mods.touhou_little_maid_fusion;
 
+import com.github.tartaricacid.touhoulittlemaid.api.event.MaidAttackEvent;
+import com.github.tartaricacid.touhoulittlemaid.api.event.MaidTickEvent;
+import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
+import mekanism.common.registries.MekanismDamageTypes;
+import net.neoforged.bus.api.EventPriority;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -9,8 +16,10 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import zank.mods.touhou_little_maid_fusion.util.FusionState;
 
 @Mod(TouhouLittleMaidFusion.MODID)
+@EventBusSubscriber
 public class TouhouLittleMaidFusion {
     public static final String MODID = "touhou_little_maid_fusion";
     public static final Logger LOGGER = LogUtils.getLogger();
@@ -31,5 +40,40 @@ public class TouhouLittleMaidFusion {
 
         // Register config
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    static void onMaidHurt(MaidAttackEvent event) {
+        if (MekanismDamageTypes.LASER.is(event.getSource())) {
+            EntityMaid maid = event.getMaid();
+
+            // Cancel the damage
+            event.setCanceled(true);
+
+            // Enter fusion state
+            FusionState.set(maid, Config.FUSION_DURATION_TICKS.getAsInt());
+        }
+    }
+
+    @SubscribeEvent
+    static void onMaidTick(MaidTickEvent event) {
+        EntityMaid maid = event.getMaid();
+        if (maid.level().isClientSide()) {
+            return;
+        }
+
+        int fusionState = FusionState.get(maid);
+        if (!FusionState.inFusion(fusionState)) {
+            return;
+        }
+
+        // Tick fusion state countdown
+        FusionState.set(maid, fusionState - 1);
+
+        // Consume hunger while in fusion state (per tick)
+        int currentHunger = maid.getHunger();
+        int drainPerTick = Math.max(1, Config.FUSION_HUNGER_DRAIN.getAsInt() / 20);
+        int newHunger = Math.max(0, currentHunger - drainPerTick);
+        maid.setHunger(newHunger);
     }
 }

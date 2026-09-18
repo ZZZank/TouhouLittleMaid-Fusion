@@ -17,8 +17,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
 import org.jetbrains.annotations.NotNull;
-import zank.mods.touhou_little_maid_fusion.FusionState;
-import zank.mods.touhou_little_maid_fusion.TouhouLittleMaidFusionRegistries;
+import zank.mods.touhou_little_maid_fusion.util.FusionState;
 
 /**
  * RenderLayer that draws the Mekanism fusion reactor interior energy core
@@ -53,8 +52,8 @@ public class FusionRenderLayer extends RenderLayer<Mob, BedrockModel<Mob>> {
             return;
         }
 
-        FusionState fusionState = maid.getData(TouhouLittleMaidFusionRegistries.AttachmentTypes.FUSION_STATE.get());
-        if (!fusionState.isInFusion()) {
+        int fusionState = FusionState.get(maid);
+        if (!FusionState.inFusion(fusionState)) {
             return;
         }
 
