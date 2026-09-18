@@ -25,6 +25,7 @@ public class TouhouLittleMaidFusion {
         TouhouLittleMaidFusionRegistries.BLOCKS.register(modEventBus);
         TouhouLittleMaidFusionRegistries.TILE_ENTITY_TYPES.register(modEventBus);
         TouhouLittleMaidFusionRegistries.CONTAINER_TYPES.register(modEventBus);
+        TouhouLittleMaidFusionRegistries.ENTITY_TYPES.register(modEventBus);
 
         // Register NeoForge attachment types
         FusionState.ATTACHMENT_TYPES.register(modEventBus);

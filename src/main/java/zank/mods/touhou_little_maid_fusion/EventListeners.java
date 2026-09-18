@@ -34,10 +34,14 @@ public class EventListeners {
     @SubscribeEvent
     static void onMaidTick(MaidTickEvent event) {
         EntityMaid maid = event.getMaid();
-        if (maid.level().isClientSide()) return;
+        if (maid.level().isClientSide()) {
+            return;
+        }
 
         FusionState fusionState = maid.getData(FusionState.TYPE.get());
-        if (!fusionState.isInFusion()) return;
+        if (!fusionState.isInFusion()) {
+            return;
+        }
 
         // Tick fusion state countdown
         fusionState.tick();

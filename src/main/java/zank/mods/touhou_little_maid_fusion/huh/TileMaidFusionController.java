@@ -13,7 +13,6 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitItems;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
-import mekanism.api.functions.ConstantPredicates;
 import mekanism.common.capabilities.energy.MachineEnergyContainer;
 import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
 import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
@@ -37,6 +36,7 @@ import net.minecraft.world.phys.AABB;
 import zank.mods.touhou_little_maid_fusion.Config;
 import zank.mods.touhou_little_maid_fusion.FusionState;
 import zank.mods.touhou_little_maid_fusion.TouhouLittleMaidFusionRegistries;
+import zank.mods.touhou_little_maid_fusion.entity.PinSeatEntity;
 
 /**
  * @author ZZZank
@@ -51,6 +51,8 @@ public class TileMaidFusionController extends TileEntityMekanism {
     private UUID pinnedMaidUUID;
     @Nullable
     private EntityMaid cachedMaid;
+    @Nullable
+    private PinSeatEntity pinSeatEntity;
     private boolean running = false;
     private int tickCounter = 0;
 
@@ -111,6 +113,11 @@ public class TileMaidFusionController extends TileEntityMekanism {
         }
         cachedMaid = null;
         return null;
+    }
+
+    @Nullable
+    public PinSeatEntity getPinSeatEntity() {
+        return pinSeatEntity;
     }
 
     public boolean isRunning() {
@@ -176,6 +183,14 @@ public class TileMaidFusionController extends TileEntityMekanism {
         }
 
         level.addFreshEntity(maid);
+
+        // pin the maid
+        PinSeatEntity seat = new PinSeatEntity(TouhouLittleMaidFusionRegistries.EntityTypes.HAVE_A_SEAT_PLS.get(), level);
+        seat.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, 0, 0);
+        level.addFreshEntity(seat);
+        maid.startRiding(seat);
+        pinSeatEntity = seat;
+
         level.playSound(null, getBlockPos(), SoundEvents.PLAYER_SPLASH, SoundSource.BLOCKS, 1.0F, 1.0F);
 
         pinnedMaidUUID = maid.getUUID();
@@ -213,6 +228,12 @@ public class TileMaidFusionController extends TileEntityMekanism {
         }
         maidInputSlot.insertItem(newSoulCard, Action.EXECUTE, AutomationType.INTERNAL);
 
+        // 销毁PinSeatEntity（会自动让女仆下骑乘）
+        if (pinSeatEntity != null) {
+            pinSeatEntity.discard();
+            pinSeatEntity = null;
+        }
+
         maid.discard();
         pinnedMaidUUID = null;
         cachedMaid = null;
@@ -231,10 +252,17 @@ public class TileMaidFusionController extends TileEntityMekanism {
         AABB checkArea = new AABB(center).inflate(1);
 
         EntityMaid maid = getPinnedMaid();
-        if (maid == null || !checkArea.intersects(maid.getBoundingBox())) {
+        boolean maidValid = maid != null && checkArea.intersects(maid.getBoundingBox());
+        boolean seatValid = pinSeatEntity != null && pinSeatEntity.isAlive();
+
+        if (!maidValid || !seatValid) {
             running = false;
             pinnedMaidUUID = null;
             cachedMaid = null;
+            if (pinSeatEntity != null) {
+                pinSeatEntity.discard();
+                pinSeatEntity = null;
+            }
             setChanged();
         }
     }
@@ -328,6 +356,11 @@ public class TileMaidFusionController extends TileEntityMekanism {
                 getBlockPos().getZ() + 0.5,
                 maidOutputSlot.getStack()
             );
+        }
+        // 销毁PinSeatEntity
+        if (pinSeatEntity != null) {
+            pinSeatEntity.discard();
+            pinSeatEntity = null;
         }
     }
 
