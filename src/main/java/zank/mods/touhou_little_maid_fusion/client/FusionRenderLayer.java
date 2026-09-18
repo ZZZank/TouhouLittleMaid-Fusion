@@ -1,5 +1,6 @@
 package zank.mods.touhou_little_maid_fusion.client;
 
+import com.github.tartaricacid.touhoulittlemaid.api.entity.IMaid;
 import com.github.tartaricacid.touhoulittlemaid.client.model.bedrock.BedrockModel;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -22,6 +23,7 @@ import zank.mods.touhou_little_maid_fusion.TouhouLittleMaidFusionRegistries;
 /**
  * RenderLayer that draws the Mekanism fusion reactor interior energy core
  * effect on EntityMaid entities that are in fusion state.
+ *
  * @see mekanism.generators.client.render.RenderFusionReactor
  */
 public class FusionRenderLayer extends RenderLayer<Mob, BedrockModel<Mob>> {
@@ -38,7 +40,7 @@ public class FusionRenderLayer extends RenderLayer<Mob, BedrockModel<Mob>> {
         @NotNull PoseStack poseStack,
         @NotNull MultiBufferSource bufferSource,
         int packedLight,
-        @NotNull Mob entity,
+        @NotNull Mob mob,
         float limbSwing,
         float limbSwingAmount,
         float partialTick,
@@ -47,11 +49,14 @@ public class FusionRenderLayer extends RenderLayer<Mob, BedrockModel<Mob>> {
         float headPitch
     ) {
         // Only render for EntityMaid in fusion state
-        if (!(entity instanceof EntityMaid maid)) return;
-        if (!maid.isAlive()) return;
+        if (!(IMaid.convert(mob) instanceof EntityMaid maid) || !maid.isAlive()) {
+            return;
+        }
 
         FusionState fusionState = maid.getData(TouhouLittleMaidFusionRegistries.AttachmentTypes.FUSION_STATE.get());
-        if (!fusionState.isInFusion()) return;
+        if (!fusionState.isInFusion()) {
+            return;
+        }
 
         ModelEnergyCore core = modelEnergyCore;
 
