@@ -1,13 +1,6 @@
 {
-  "itemGroup.touhou_little_maid_fusion": "Example Mod Tab",
-  "block.touhou_little_maid_fusion.example_block": "Example Block",
-  "item.touhou_little_maid_fusion.example_item": "Example Item",
-
-  "touhou_little_maid_fusion.configuration.title": "Touhou Little Maid: Fusion Configs",
-  "touhou_little_maid_fusion.configuration.section.touhou_little_maid_fusion.common.toml": "Touhou Little Maid: Fusion Configs",
-  "touhou_little_maid_fusion.configuration.section.touhou_little_maid_fusion.common.toml.title": "Touhou Little Maid: Fusion Configs",
-  "touhou_little_maid_fusion.configuration.items": "Item List",
-  "touhou_little_maid_fusion.configuration.logDirtBlock": "Log Dirt Block",
-  "touhou_little_maid_fusion.configuration.magicNumberIntroduction": "Magic Number Text",
-  "touhou_little_maid_fusion.configuration.magicNumber": "Magic Number"
+  "itemGroup.touhou_little_maid_fusion": "Touhou Little Maid: Fusion",
+  "block.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller",
+  "item.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller",
+  "container.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller"
 }

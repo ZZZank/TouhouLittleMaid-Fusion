@@ -86,6 +86,17 @@ Make your maid start fusion reaction instead of dying when hit by Mekanism Laser
     ordering="NONE"
     side="BOTH"
 
+[[dependencies.${mod_id}]]
+modId="touhou_little_maid"
+type="required"
+
+[[dependencies.${mod_id}]]
+modId="mekanism"
+type="required"
+
+[[dependencies.${mod_id}]]
+modId="mekanismgenerators"
+type="required"
 # Features are specific properties of the game environment, that you may want to declare you require. This example declares
 # that your mod requires GL version 3.2 or higher. Other features will be added. They are side aware so declaring this won't
 # stop your mod loading on the server for example.
