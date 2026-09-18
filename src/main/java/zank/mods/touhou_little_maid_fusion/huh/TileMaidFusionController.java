@@ -19,6 +19,7 @@ import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.capabilities.holder.slot.InventorySlotHelper;
 import mekanism.common.inventory.slot.BasicInventorySlot;
+import mekanism.common.inventory.slot.OutputInventorySlot;
 import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,7 +29,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.state.BlockState;
@@ -44,8 +44,8 @@ import zank.mods.touhou_little_maid_fusion.entity.PinSeatEntity;
 public class TileMaidFusionController extends TileEntityMekanism {
 
     private MachineEnergyContainer<TileMaidFusionController> energyContainer;
-    private BasicInventorySlot maidInputSlot;
-    private BasicInventorySlot maidOutputSlot;
+    private BasicInventorySlot inputSlot;
+    private OutputInventorySlot outputSlot;
 
     @Nullable
     private UUID pinnedMaidUUID;
@@ -57,7 +57,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
     private int tickCounter = 0;
 
     public TileMaidFusionController(BlockPos pos, BlockState state) {
-        super(TouhouLittleMaidFusionRegistries.Block.CONTROLLER, pos, state);
+        super(TouhouLittleMaidFusionRegistries.Blocks.CONTROLLER, pos, state);
     }
 
     @NotNull
@@ -72,12 +72,13 @@ public class TileMaidFusionController extends TileEntityMekanism {
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
         InventorySlotHelper builder = InventorySlotHelper.forSide(facingSupplier);
-        // "-" slot: soul card with maid
-        Predicate<ItemStack> maidCardValidator = stack -> stack.is(InitItems.SMART_SLAB_HAS_MAID.get());
-        builder.addSlot(maidInputSlot = BasicInventorySlot.at(maidCardValidator, listener, 56, 35));
-        // "+" slot: empty soul card
-        Predicate<ItemStack> emptyCardValidator = stack -> stack.is(InitItems.SMART_SLAB_EMPTY.get());
-        builder.addSlot(maidOutputSlot = BasicInventorySlot.at(emptyCardValidator, listener, 100, 35));
+        inputSlot = builder.addSlot(BasicInventorySlot.at(
+            stack -> stack.is(InitItems.SMART_SLAB_HAS_MAID.get()) || stack.is(InitItems.SMART_SLAB_EMPTY.get()),
+            listener,
+            56,
+            35
+        ));
+        outputSlot = builder.addSlot(OutputInventorySlot.at(listener, 100, 35));
         return builder.build();
     }
 
@@ -85,12 +86,12 @@ public class TileMaidFusionController extends TileEntityMekanism {
         return energyContainer;
     }
 
-    public BasicInventorySlot getMaidInputSlot() {
-        return maidInputSlot;
+    public BasicInventorySlot getInputSlot() {
+        return inputSlot;
     }
 
-    public BasicInventorySlot getMaidOutputSlot() {
-        return maidOutputSlot;
+    public OutputInventorySlot getOutputSlot() {
+        return outputSlot;
     }
 
     @Nullable
@@ -150,46 +151,46 @@ public class TileMaidFusionController extends TileEntityMekanism {
     }
 
     private void tryPinMaid() {
-        ItemStack minusSlot = maidInputSlot.getStack();
-        if (minusSlot.isEmpty() || !minusSlot.is(InitItems.SMART_SLAB_HAS_MAID.get())) {
+        ItemStack inputStack = inputSlot.getStack();
+        if (inputStack.isEmpty() || !inputStack.is(InitItems.SMART_SLAB_HAS_MAID.get())) {
             return;
         }
 
-        CustomData maidInfo = minusSlot.get(InitDataComponent.MAID_INFO);
+        CustomData maidInfo = inputStack.get(InitDataComponent.MAID_INFO);
         if (maidInfo == null) {
             return;
         }
 
-        ItemStack soulCard = maidInputSlot.extractItem(1, Action.SIMULATE, AutomationType.INTERNAL);
-        if (soulCard.isEmpty()) {
+        CompoundTag maidCompound = maidInfo.copyTag();
+        if (!maidCompound.hasUUID("Owner")) {
+            // @see com.github.tartaricacid.touhoulittlemaid.item.AbstractStoreMaidItem#spawnFromStore(...)
             return;
         }
-        maidInputSlot.extractItem(1, Action.EXECUTE, AutomationType.INTERNAL);
+
+        ItemStack emptySlab = new ItemStack(InitItems.SMART_SLAB_EMPTY.get());
+        if (!outputSlot.getStack().isEmpty() && !ItemStack.isSameItemSameComponents(outputSlot.getStack(), emptySlab)) {
+            return;
+        }
+        if (outputSlot.getStack().getCount() >= outputSlot.getStack().getMaxStackSize()) {
+            return;
+        }
+
+        inputSlot.extractItem(1, Action.EXECUTE, AutomationType.INTERNAL);
 
         BlockPos spawnPos = getBlockPos().above(3);
         EntityMaid maid = new EntityMaid(level);
-        maid.load(maidInfo.copyTag());
+        maid.load(maidCompound);
         maid.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, 0, 0);
-
-        for (Player player : level.players()) {
-            if (player.distanceToSqr(
-                getBlockPos().getX() + 0.5,
-                getBlockPos().getY() + 0.5,
-                getBlockPos().getZ() + 0.5
-            ) < 64) {
-                maid.tame(player);
-                break;
-            }
-        }
 
         level.addFreshEntity(maid);
 
-        // pin the maid
         PinSeatEntity seat = new PinSeatEntity(TouhouLittleMaidFusionRegistries.EntityTypes.HAVE_A_SEAT_PLS.get(), level);
         seat.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, 0, 0);
         level.addFreshEntity(seat);
         maid.startRiding(seat);
         pinSeatEntity = seat;
+
+        outputSlot.insertItem(emptySlab, Action.EXECUTE, AutomationType.INTERNAL);
 
         level.playSound(null, getBlockPos(), SoundEvents.PLAYER_SPLASH, SoundSource.BLOCKS, 1.0F, 1.0F);
 
@@ -199,8 +200,16 @@ public class TileMaidFusionController extends TileEntityMekanism {
     }
 
     private void tryRecallMaid() {
-        ItemStack plusSlot = maidOutputSlot.getStack();
-        if (plusSlot.isEmpty() || !plusSlot.is(InitItems.SMART_SLAB_EMPTY.get()) || pinnedMaidUUID == null) {
+        ItemStack inputStack = inputSlot.getStack();
+        if (inputStack.isEmpty() || !inputStack.is(InitItems.SMART_SLAB_EMPTY.get())) {
+            return;
+        }
+
+        ItemStack maidSlab = new ItemStack(InitItems.SMART_SLAB_HAS_MAID.get());
+        if (!outputSlot.getStack().isEmpty() && !ItemStack.isSameItemSameComponents(outputSlot.getStack(), maidSlab)) {
+            return;
+        }
+        if (outputSlot.getStack().getCount() >= outputSlot.getStack().getMaxStackSize()) {
             return;
         }
 
@@ -209,24 +218,14 @@ public class TileMaidFusionController extends TileEntityMekanism {
             return;
         }
 
-        maidOutputSlot.extractItem(1, Action.EXECUTE, AutomationType.INTERNAL);
+        inputSlot.extractItem(1, Action.EXECUTE, AutomationType.INTERNAL);
 
         ItemStack newSoulCard = new ItemStack(InitItems.SMART_SLAB_HAS_MAID.get());
         CompoundTag entityData = new CompoundTag();
         maid.saveWithoutId(entityData);
         newSoulCard.set(InitDataComponent.MAID_INFO, CustomData.of(entityData));
 
-        ItemStack remainder = maidInputSlot.insertItem(newSoulCard, Action.SIMULATE, AutomationType.INTERNAL);
-        if (!remainder.isEmpty()) {
-            Containers.dropItemStack(
-                level,
-                getBlockPos().getX() + 0.5,
-                getBlockPos().getY() + 1.5,
-                getBlockPos().getZ() + 0.5,
-                remainder
-            );
-        }
-        maidInputSlot.insertItem(newSoulCard, Action.EXECUTE, AutomationType.INTERNAL);
+        outputSlot.insertItem(newSoulCard, Action.EXECUTE, AutomationType.INTERNAL);
 
         // 销毁PinSeatEntity（会自动让女仆下骑乘）
         if (pinSeatEntity != null) {
@@ -339,22 +338,22 @@ public class TileMaidFusionController extends TileEntityMekanism {
         if (level == null) {
             return;
         }
-        if (!maidInputSlot.isEmpty()) {
+        if (!inputSlot.isEmpty()) {
             Containers.dropItemStack(
                 level,
                 getBlockPos().getX() + 0.5,
                 getBlockPos().getY() + 0.5,
                 getBlockPos().getZ() + 0.5,
-                maidInputSlot.getStack()
+                inputSlot.getStack()
             );
         }
-        if (!maidOutputSlot.isEmpty()) {
+        if (!outputSlot.isEmpty()) {
             Containers.dropItemStack(
                 level,
                 getBlockPos().getX() + 0.5,
                 getBlockPos().getY() + 0.5,
                 getBlockPos().getZ() + 0.5,
-                maidOutputSlot.getStack()
+                outputSlot.getStack()
             );
         }
         // 销毁PinSeatEntity
