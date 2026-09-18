@@ -12,7 +12,7 @@ public class Config {
 
     public static final ModConfigSpec.IntValue FUSION_DURATION_TICKS = BUILDER
             .comment("How long (in ticks) the fusion state lasts after being hit by the laser")
-            .defineInRange("fusionDurationTicks", 400, 1, 72000);
+            .defineInRange("fusionDurationTicks", 20, 1, 72000);
 
     // === Energy Production ===
     public static final ModConfigSpec.DoubleValue ENERGY_PRODUCTION_MULTIPLIER = BUILDER
