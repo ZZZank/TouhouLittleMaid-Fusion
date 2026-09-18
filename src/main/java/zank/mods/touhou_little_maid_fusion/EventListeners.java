@@ -26,7 +26,7 @@ public class EventListeners {
             event.setCanceled(true);
 
             // Enter fusion state
-            FusionState fusionState = maid.getData(FusionState.TYPE.get());
+            FusionState fusionState = maid.getData(TouhouLittleMaidFusionRegistries.AttachmentTypes.FUSION_STATE.get());
             fusionState.startFusion(Config.FUSION_DURATION_TICKS.getAsInt());
         }
     }
@@ -38,7 +38,7 @@ public class EventListeners {
             return;
         }
 
-        FusionState fusionState = maid.getData(FusionState.TYPE.get());
+        FusionState fusionState = maid.getData(TouhouLittleMaidFusionRegistries.AttachmentTypes.FUSION_STATE.get());
         if (!fusionState.isInFusion()) {
             return;
         }

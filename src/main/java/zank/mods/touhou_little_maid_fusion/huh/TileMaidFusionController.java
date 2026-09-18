@@ -274,7 +274,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
             return;
         }
 
-        FusionState fusionState = maid.getData(FusionState.TYPE.get());
+        FusionState fusionState = maid.getData(TouhouLittleMaidFusionRegistries.AttachmentTypes.FUSION_STATE.get());
         if (!fusionState.isInFusion()) {
             return;
         }

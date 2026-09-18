@@ -6,9 +6,14 @@ import mekanism.common.registration.MekanismDeferredHolder;
 import mekanism.common.registration.impl.*;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import zank.mods.touhou_little_maid_fusion.entity.PinSeatEntity;
 import zank.mods.touhou_little_maid_fusion.huh.BlockMaidFusionController;
 import zank.mods.touhou_little_maid_fusion.huh.TileMaidFusionController;
+
+import java.util.function.Supplier;
 
 import static zank.mods.touhou_little_maid_fusion.TouhouLittleMaidFusion.MODID;
 
@@ -20,6 +25,8 @@ public interface TouhouLittleMaidFusionRegistries {
     TileEntityTypeDeferredRegister TILE_ENTITY_TYPES = new TileEntityTypeDeferredRegister(MODID);
     ContainerTypeDeferredRegister CONTAINER_TYPES = new ContainerTypeDeferredRegister(MODID);
     EntityTypeDeferredRegister ENTITY_TYPES = new EntityTypeDeferredRegister(MODID);
+    DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES =
+            DeferredRegister.create(NeoForgeRegistries.Keys.ATTACHMENT_TYPES, MODID);
 
     class Block {
         public static final BlockRegistryObject<BlockMaidFusionController, ?> CONTROLLER = BLOCKS
@@ -52,6 +59,15 @@ public interface TouhouLittleMaidFusionRegistries {
                 .sized(0.25f, 0.35f)
                 .noSave()
                 .noSummon()
+        );
+    }
+
+    class AttachmentTypes {
+        public static final Supplier<AttachmentType<FusionState>> FUSION_STATE = ATTACHMENT_TYPES.register(
+            "fusion_state",
+            () -> AttachmentType.builder(FusionState::new)
+                .serialize(FusionState.CODEC)
+                .build()
         );
     }
 }
