@@ -27,11 +27,11 @@ import zank.mods.touhou_little_maid_fusion.util.FusionState;
  */
 public class FusionRenderLayer extends RenderLayer<Mob, BedrockModel<Mob>> {
 
-    private final ModelEnergyCore modelEnergyCore;
+    private final ModelEnergyCore core;
 
-    public FusionRenderLayer(RenderLayerParent<Mob, BedrockModel<Mob>> renderer, ModelEnergyCore modelEnergyCore) {
+    public FusionRenderLayer(RenderLayerParent<Mob, BedrockModel<Mob>> renderer, ModelEnergyCore core) {
         super(renderer);
-        this.modelEnergyCore = modelEnergyCore;
+        this.core = core;
     }
 
     @Override
@@ -57,40 +57,42 @@ public class FusionRenderLayer extends RenderLayer<Mob, BedrockModel<Mob>> {
             return;
         }
 
-        ModelEnergyCore core = modelEnergyCore;
+        // make it slower than original Mek
+        float ticks = ageInTicks / 2;
 
         // Get the buffer for the energy core render type
         VertexConsumer buffer = bufferSource.getBuffer(core.RENDER_TYPE);
 
-        long scaledTemp = (long) (ageInTicks * 0.1);
+        long scaledTemp = (long) (ticks * 0.1);
 
         poseStack.pushPose();
+
         // Position at entity center
         poseStack.translate(0, maid.getBbHeight() / 2.0, 0);
         // Scale down to entity size
-        float baseScale = 0.04F;
+        float baseScale = 2f;
         poseStack.scale(baseScale, baseScale, baseScale);
 
         // Layer 1: RED - oscillating scale, Y rotation -6°/tick, coreVec rotation 36°/tick
         float scale1 = 1.0F + 0.7F * sinDegrees(3.14F * scaledTemp + 135.0F);
-        renderPart(poseStack, buffer, EnumColor.RED, scale1, ageInTicks, -6, -7, 0, 36, core);
+        renderPart(poseStack, buffer, EnumColor.RED, scale1, ticks, -6, -7, 0, 36);
 
         // Layer 2: PINK - oscillating scale, Y rotation 4°/tick, coreVec rotation 36°/tick
         float scale2 = 1.0F + 0.8F * sinDegrees(3L * scaledTemp);
-        renderPart(poseStack, buffer, EnumColor.PINK, scale2, ageInTicks, 4, 4, 0, 36, core);
+        renderPart(poseStack, buffer, EnumColor.PINK, scale2, ticks, 4, 4, 0, 36);
 
         // Layer 3: ORANGE - oscillating scale, Y rotation 5°/tick, coreVec rotation 106°/tick
         float scale3 = 1.0F - 0.9F * sinDegrees(4L * scaledTemp + 90L);
-        renderPart(poseStack, buffer, EnumColor.ORANGE, scale3, ageInTicks, 5, -3, -35, 106, core);
+        renderPart(poseStack, buffer, EnumColor.ORANGE, scale3, ticks, 5, -3, -35, 106);
 
         poseStack.popPose();
     }
 
     private static float sinDegrees(float degrees) {
-        return Mth.sin(degrees % 360.0F * ((float) Math.PI / 180F));
+        return Mth.sin((degrees % 360.0F) * Mth.DEG_TO_RAD);
     }
 
-    private static void renderPart(
+    private void renderPart(
         PoseStack matrix,
         VertexConsumer buffer,
         EnumColor color,
@@ -99,8 +101,7 @@ public class FusionRenderLayer extends RenderLayer<Mob, BedrockModel<Mob>> {
         int mult1,
         int mult2,
         int shift1,
-        int shift2,
-        ModelEnergyCore core
+        int shift2
     ) {
         matrix.pushPose();
         matrix.scale(scale, scale, scale);
