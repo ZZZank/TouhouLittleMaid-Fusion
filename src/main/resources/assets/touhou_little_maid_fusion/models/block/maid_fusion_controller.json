@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:block/cube_all",
-  "textures": {
-    "all": "mekanismgenerators:block/fusion_reactor_controller"
-  }
+  "parent": "mekanismgenerators:block/fusion/controller"
 }

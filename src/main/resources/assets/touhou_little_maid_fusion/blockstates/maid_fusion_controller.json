@@ -1,5 +1,10 @@
 {
   "variants": {
-    "": { "model": "touhou_little_maid_fusion:block/maid_fusion_controller" }
+    "active=false": {
+      "model": "mekanismgenerators:block/fusion/controller"
+    },
+    "active=true": {
+      "model": "mekanismgenerators:block/fusion/controller_on"
+    }
   }
 }
