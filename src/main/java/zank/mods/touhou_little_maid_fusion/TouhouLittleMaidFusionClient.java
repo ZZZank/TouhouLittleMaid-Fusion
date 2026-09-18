@@ -34,7 +34,7 @@ public class TouhouLittleMaidFusionClient {
     public static void registerScreen(RegisterMenuScreensEvent event) {
         ClientRegistrationUtil.registerScreen(
             event,
-            TouhouLittleMaidFusionRegistries.ContainerType.CONTROLLER,
+            TouhouLittleMaidFusionRegistries.ContainerTypes.CONTROLLER,
             GuiMaidFusionController::new
         );
     }

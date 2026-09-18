@@ -10,6 +10,6 @@ import zank.mods.touhou_little_maid_fusion.TouhouLittleMaidFusionRegistries;
  */
 public class BlockMaidFusionController extends BlockTile<TileMaidFusionController, Machine<TileMaidFusionController>> {
     public BlockMaidFusionController() {
-        super(TouhouLittleMaidFusionRegistries.BlockType.CONTROLLER, p -> p.mapColor(MapColor.COLOR_ORANGE));
+        super(TouhouLittleMaidFusionRegistries.BlockTypes.CONTROLLER, p -> p.mapColor(MapColor.COLOR_ORANGE));
     }
 }
