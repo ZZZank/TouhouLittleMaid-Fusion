@@ -284,9 +284,11 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
 
         if (totalEnergy > 0) {
             getEnergyContainer().insert(totalEnergy, Action.EXECUTE, AutomationType.INTERNAL);
+            setActive(true);
             lastEnergyProduced = totalEnergy;
             setChanged();
         } else {
+            setActive(false);
             lastEnergyProduced = 0;
         }
     }
