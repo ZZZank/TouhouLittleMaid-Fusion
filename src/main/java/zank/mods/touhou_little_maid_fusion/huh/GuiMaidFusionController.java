@@ -34,9 +34,9 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
         // 内部屏幕显示女仆状态
         addRenderableWidget(new GuiInnerScreen(
             this,
-            48,
+            48 - 36,
             18,
-            64,
+            64 + 36,
             48,
             this::getMaidStatusText
         ));
