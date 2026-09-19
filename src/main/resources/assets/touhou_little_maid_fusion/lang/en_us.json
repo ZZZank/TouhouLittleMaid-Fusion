@@ -9,5 +9,13 @@
   "gui.touhou_little_maid_fusion.hunger": "Hunger: %d",
   "gui.touhou_little_maid_fusion.hunger_empty": "Hunger: EMPTY!",
   "gui.touhou_little_maid_fusion.maid_active": "Maid Active",
-  "gui.touhou_little_maid_fusion.producing": "Producing: %s/t"
+  "gui.touhou_little_maid_fusion.producing": "Producing: %s/t",
+  
+  "touhou_little_maid_fusion.configuration.fusionHungerDrain": "Fusion Hunger Drain",
+  "touhou_little_maid_fusion.configuration.fusionDurationTicks": "Fusion Duration Ticks",
+  "touhou_little_maid_fusion.configuration.energyProductionMultiplier": "Energy Production Multiplier",
+  "touhou_little_maid_fusion.configuration.favorabilityEnergyMultiplier": "Favorability Energy Multiplier",
+  "touhou_little_maid_fusion.configuration.hungerEnergyMultiplier": "Hunger Energy Multiplier",
+  "touhou_little_maid_fusion.configuration.randomPerturbationMultiplier": "Random Perturbation Multiplier",
+  "touhou_little_maid_fusion.configuration.energyBufferCapacity": "Energy Buffer Capacity"
 }

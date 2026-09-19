@@ -9,6 +9,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import zank.mods.touhou_little_maid_fusion.huh.GuiMaidFusionController;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
@@ -16,6 +18,7 @@ import zank.mods.touhou_little_maid_fusion.huh.GuiMaidFusionController;
 @EventBusSubscriber(modid = TouhouLittleMaidFusion.MODID, value = Dist.CLIENT)
 public class TouhouLittleMaidFusionClient {
     public TouhouLittleMaidFusionClient(ModContainer container) {
+        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
     @SubscribeEvent
