@@ -23,10 +23,6 @@ public class Config {
             .comment("How much favorability affects energy production (multiplied with favorability/100)")
             .defineInRange("favorabilityEnergyMultiplier", 1.0, 0.0, 100.0);
 
-    public static final ModConfigSpec.DoubleValue HUNGER_ENERGY_MULTIPLIER = BUILDER
-            .comment("How much hunger affects energy production (multiplied with hunger/100)")
-            .defineInRange("hungerEnergyMultiplier", 0.5, 0.0, 100.0);
-
     public static final ModConfigSpec.DoubleValue RANDOM_PERTURBATION_MULTIPLIER = BUILDER
             .comment("How much the UUID-based random perturbation affects energy production")
             .defineInRange("randomPerturbationMultiplier", 0.2, 0.0, 100.0);

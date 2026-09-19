@@ -271,25 +271,17 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
             return;
         }
 
-        int currentHunger = maid.getHunger();
-        if (currentHunger <= 0) {
-            lastEnergyProduced = 0;
-            return;
-        }
-
         double baseMultiplier = Config.ENERGY_PRODUCTION_MULTIPLIER.getAsDouble();
         double favorabilityMultiplier = Config.FAVORABILITY_ENERGY_MULTIPLIER.getAsDouble();
-        double hungerMultiplier = Config.HUNGER_ENERGY_MULTIPLIER.getAsDouble();
         double randomPerturbation = Config.RANDOM_PERTURBATION_MULTIPLIER.getAsDouble();
 
         int favorability = maid.getFavorability();
         double favorabilityFactor = 1.0 + (favorability / 384.0) * favorabilityMultiplier;
-        double hungerFactor = 1.0 + (currentHunger / 100.0) * hungerMultiplier;
 
         UUID maidUUID = maid.getUUID();
         double uuidPerturbation = 1.0 + (Math.sin(maidUUID.getMostSignificantBits()) * 0.5 + 0.5) * randomPerturbation;
 
-        long totalEnergy = (long) (baseMultiplier * favorabilityFactor * hungerFactor * uuidPerturbation);
+        long totalEnergy = (long) (baseMultiplier * favorabilityFactor * uuidPerturbation);
 
         if (totalEnergy > 0) {
             getEnergyContainer().insert(totalEnergy, Action.EXECUTE, AutomationType.INTERNAL);

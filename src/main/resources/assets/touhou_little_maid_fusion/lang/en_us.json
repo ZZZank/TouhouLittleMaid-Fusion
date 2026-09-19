@@ -15,7 +15,6 @@
   "touhou_little_maid_fusion.configuration.fusionDurationTicks": "Fusion Duration Ticks",
   "touhou_little_maid_fusion.configuration.energyProductionMultiplier": "Energy Production Multiplier",
   "touhou_little_maid_fusion.configuration.favorabilityEnergyMultiplier": "Favorability Energy Multiplier",
-  "touhou_little_maid_fusion.configuration.hungerEnergyMultiplier": "Hunger Energy Multiplier",
   "touhou_little_maid_fusion.configuration.randomPerturbationMultiplier": "Random Perturbation Multiplier",
   "touhou_little_maid_fusion.configuration.energyBufferCapacity": "Energy Buffer Capacity"
 }

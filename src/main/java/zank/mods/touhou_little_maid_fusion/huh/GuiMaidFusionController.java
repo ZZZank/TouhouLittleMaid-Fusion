@@ -31,7 +31,7 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
     @Override
     protected void addGuiElements() {
         super.addGuiElements();
-        // 内部屏幕显示女仆状态
+        // area based the fluid tank, but 36 pixels wider
         addRenderableWidget(new GuiInnerScreen(
             this,
             48 - 36,
@@ -40,12 +40,10 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
             48,
             this::getMaidStatusText
         ));
-        // 能量显示标签
         addRenderableWidget(new GuiEnergyTab(this, () -> List.of(
             GeneratorsLang.PRODUCING_AMOUNT.translate(EnergyDisplay.of(tile.getLastEnergyProduced())),
             MekanismLang.CAPACITY.translate(EnergyDisplay.of(tile.getEnergyContainer().getMaxEnergy()))
         )));
-        // 能量条
         addRenderableWidget(new GuiVerticalPowerBar(this, tile.getEnergyContainer(), 164, 15));
     }
 
@@ -57,15 +55,8 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
             if (maid != null) {
                 lines.add(maid.getDisplayName().copy().withStyle(ChatFormatting.GREEN));
                 lines.add(Component.translatable("gui.touhou_little_maid_fusion.favorability", maid.getFavorability()).withStyle(ChatFormatting.YELLOW));
-                int hunger = maid.getHunger();
-                if (hunger <= 0) {
-                    lines.add(Component.translatable("gui.touhou_little_maid_fusion.hunger_empty").withStyle(ChatFormatting.RED));
-                } else {
-                    lines.add(Component.translatable("gui.touhou_little_maid_fusion.hunger", hunger).withStyle(ChatFormatting.YELLOW));
-                }
             } else {
-                lines.add(Component.translatable("gui.touhou_little_maid_fusion.maid_pinned")
-                    .withStyle(ChatFormatting.GREEN));
+                lines.add(Component.translatable("gui.touhou_little_maid_fusion.maid_pinned").withStyle(ChatFormatting.GREEN));
             }
         } else {
             lines.add(Component.translatable("gui.touhou_little_maid_fusion.no_maid")
