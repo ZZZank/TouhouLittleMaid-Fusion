@@ -5,6 +5,7 @@ import java.util.function.Predicate;
 
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.container.slot.SlotOverlay;
+import mekanism.common.inventory.container.sync.SyncableInt;
 import net.minecraft.world.entity.Entity;
 import mekanism.common.inventory.container.sync.SyncableLong;
 import org.jetbrains.annotations.NotNull;
@@ -128,7 +129,12 @@ public class TileMaidFusionController extends TileEntityMekanism {
     @Override
     public void addContainerTrackers(MekanismContainer container) {
         super.addContainerTrackers(container);
-        container.track(SyncableBoolean.create(this::isRunning, value -> running = value));
+
+        // sync maid to client
+        container.track(SyncableInt.create(
+            () -> this.cachedMaid != null ? this.cachedMaid.getId() : -1,
+            (id) -> this.cachedMaid = this.level != null && this.level.getEntity(id) instanceof EntityMaid maid ? maid : null));
+
         container.track(SyncableLong.create(this::getLastEnergyProduced, value -> lastEnergyProduced = value));
     }
 
