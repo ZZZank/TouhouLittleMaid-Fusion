@@ -53,16 +53,16 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
         List<Component> lines = new ArrayList<>();
         
         if (tile.isRunning()) {
-            var maid = tile.getCachedMaid();
+            var maid = tile.getPinnedMaid();
             if (maid != null) {
-                // 显示女仆名称
                 lines.add(maid.getDisplayName().copy().withStyle(ChatFormatting.GREEN));
-                // 显示好感度
-                lines.add(Component.translatable("gui.touhou_little_maid_fusion.favorability", maid.getFavorability())
-                    .withStyle(ChatFormatting.YELLOW));
-                // 显示饥饿度
-                lines.add(Component.translatable("gui.touhou_little_maid_fusion.hunger", maid.getHunger())
-                    .withStyle(ChatFormatting.YELLOW));
+                lines.add(Component.translatable("gui.touhou_little_maid_fusion.favorability", maid.getFavorability()).withStyle(ChatFormatting.YELLOW));
+                int hunger = maid.getHunger();
+                if (hunger <= 0) {
+                    lines.add(Component.translatable("gui.touhou_little_maid_fusion.hunger_empty").withStyle(ChatFormatting.RED));
+                } else {
+                    lines.add(Component.translatable("gui.touhou_little_maid_fusion.hunger", hunger).withStyle(ChatFormatting.YELLOW));
+                }
             } else {
                 lines.add(Component.translatable("gui.touhou_little_maid_fusion.maid_pinned")
                     .withStyle(ChatFormatting.GREEN));

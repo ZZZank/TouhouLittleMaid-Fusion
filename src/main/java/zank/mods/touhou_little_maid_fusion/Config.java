@@ -8,7 +8,7 @@ public class Config {
     // === Fusion State ===
     public static final ModConfigSpec.IntValue FUSION_HUNGER_DRAIN = BUILDER
             .comment("How much hunger the maid loses per second while in fusion state (in hundredths)")
-            .defineInRange("fusionHungerDrain", 50, 0, 10000);
+            .defineInRange("fusionHungerDrain", 1, 0, 100);
 
     public static final ModConfigSpec.IntValue FUSION_DURATION_TICKS = BUILDER
             .comment("How long (in ticks) the fusion state lasts after being hit by the laser")

@@ -6,5 +6,8 @@
   "gui.touhou_little_maid_fusion.maid_pinned": "Maid Pinned",
   "gui.touhou_little_maid_fusion.no_maid": "No Maid",
   "gui.touhou_little_maid_fusion.favorability": "Favorability: %d",
-  "gui.touhou_little_maid_fusion.hunger": "Hunger: %d"
+  "gui.touhou_little_maid_fusion.hunger": "Hunger: %d",
+  "gui.touhou_little_maid_fusion.hunger_empty": "Hunger: EMPTY!",
+  "gui.touhou_little_maid_fusion.maid_active": "Maid Active",
+  "gui.touhou_little_maid_fusion.producing": "Producing: %s/t"
 }

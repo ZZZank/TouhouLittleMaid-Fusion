@@ -58,7 +58,6 @@ public interface TouhouLittleMaidFusionRegistries {
             "have_a_seat_pls",
             () -> EntityType.Builder.of(PinSeatEntity::new, MobCategory.MISC)
                 .sized(0.25f, 0.35f)
-                .noSave()
                 .noSummon()
         );
     }

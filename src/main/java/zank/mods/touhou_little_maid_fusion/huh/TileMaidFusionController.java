@@ -1,10 +1,11 @@
 package zank.mods.touhou_little_maid_fusion.huh;
 
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.container.slot.SlotOverlay;
-import mekanism.common.inventory.container.sync.SyncableBoolean;
+import net.minecraft.world.entity.Entity;
 import mekanism.common.inventory.container.sync.SyncableLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,12 +52,10 @@ public class TileMaidFusionController extends TileEntityMekanism {
     private OutputInventorySlot outputSlot;
 
     @Nullable
-    private UUID pinnedMaidUUID;
-    @Nullable
     private EntityMaid cachedMaid;
     @Nullable
     private PinSeatEntity pinSeatEntity;
-    private boolean running = false;
+
     private int tickCounter = 0;
     private long lastEnergyProduced = 0;
 
@@ -76,15 +75,14 @@ public class TileMaidFusionController extends TileEntityMekanism {
     @Override
     protected IInventorySlotHolder getInitialInventory(IContentsListener listener) {
         InventorySlotHelper builder = InventorySlotHelper.forSide(facingSupplier);
-        inputSlot = builder.addSlot(BasicInventorySlot.at(
-            stack -> stack.is(InitItems.SMART_SLAB_HAS_MAID.get()) || stack.is(InitItems.SMART_SLAB_EMPTY.get()),
-            listener,
-            146 - 16,
-            19
-        ));
-        outputSlot = builder.addSlot(OutputInventorySlot.at(listener, 146 - 16, 51));
+
+        Predicate<@NotNull ItemStack> inputFilter = stack -> stack.is(InitItems.SMART_SLAB_HAS_MAID.get()) || stack.is(InitItems.SMART_SLAB_EMPTY.get());
+        inputSlot = builder.addSlot(BasicInventorySlot.at(inputFilter, listener, 146 - 16, 19));
         inputSlot.setSlotOverlay(SlotOverlay.INPUT);
+
+        outputSlot = builder.addSlot(OutputInventorySlot.at(listener, 146 - 16, 51));
         outputSlot.setSlotOverlay(SlotOverlay.OUTPUT);
+
         return builder.build();
     }
 
@@ -102,21 +100,8 @@ public class TileMaidFusionController extends TileEntityMekanism {
 
     @Nullable
     public EntityMaid getPinnedMaid() {
-        if (pinnedMaidUUID == null || level == null) {
-            return null;
-        }
-        if (cachedMaid != null && cachedMaid.isAlive() && cachedMaid.getUUID().equals(pinnedMaidUUID)) {
+        if (cachedMaid != null && cachedMaid.isAlive()) {
             return cachedMaid;
-        }
-        if (level instanceof ServerLevel serverLevel) {
-            for (EntityMaid maid : serverLevel.getEntitiesOfClass(
-                EntityMaid.class,
-                new AABB(getBlockPos()).inflate(16),
-                m -> m.getUUID().equals(pinnedMaidUUID)
-            )) {
-                cachedMaid = maid;
-                return maid;
-            }
         }
         cachedMaid = null;
         return null;
@@ -128,7 +113,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
     }
 
     public boolean isRunning() {
-        return running;
+        return cachedMaid != null;
     }
 
     public long getLastEnergyProduced() {
@@ -152,24 +137,46 @@ public class TileMaidFusionController extends TileEntityMekanism {
         boolean sendUpdatePacket = super.onUpdateServer();
         tickCounter++;
 
-        if (tickCounter % 20 == 0) {
+        if (cachedMaid == null) {
+            tryRecoverFromSeat();
+        }
+
+        if (cachedMaid != null && tickCounter % 20 == 0) {
             validateMaidPresence();
         }
 
-        if (pinnedMaidUUID == null && inputSlot.getStack().is(InitItems.SMART_SLAB_HAS_MAID) && outputSlot.isEmpty()) {
+        if (cachedMaid == null && inputSlot.getStack().is(InitItems.SMART_SLAB_HAS_MAID) && outputSlot.isEmpty()) {
             tryPinMaid();
         }
 
-        if (pinnedMaidUUID != null && inputSlot.getStack().is(InitItems.SMART_SLAB_EMPTY) && outputSlot.isEmpty()) {
+        if (cachedMaid != null && inputSlot.getStack().is(InitItems.SMART_SLAB_EMPTY) && outputSlot.isEmpty()) {
             tryRecallMaid();
         }
 
-        if (running && pinnedMaidUUID != null) {
+        if (cachedMaid != null) {
             produceEnergy();
         }
 
         pushEnergy();
         return sendUpdatePacket;
+    }
+
+    private void tryRecoverFromSeat() {
+        if (level == null || !(level instanceof ServerLevel serverLevel)) {
+            return;
+        }
+
+        BlockPos center = getBlockPos().above(3);
+        AABB searchArea = new AABB(center).inflate(2);
+
+        for (PinSeatEntity seat : serverLevel.getEntitiesOfClass(PinSeatEntity.class, searchArea, Entity::isAlive)) {
+            if (seat.isVehicle() && seat.getFirstPassenger() instanceof EntityMaid maid) {
+                cachedMaid = maid;
+                pinSeatEntity = seat;
+                setChanged();
+                return;
+            }
+        }
     }
 
     private void tryPinMaid() {
@@ -198,8 +205,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
 
         level.playSound(null, getBlockPos(), SoundEvents.PLAYER_SPLASH, SoundSource.BLOCKS, 1.0F, 1.0F);
 
-        pinnedMaidUUID = maid.getUUID();
-        running = true;
+        cachedMaid = maid;
         setChanged();
     }
 
@@ -225,29 +231,24 @@ public class TileMaidFusionController extends TileEntityMekanism {
         }
 
         maid.discard();
-        pinnedMaidUUID = null;
         cachedMaid = null;
-        running = false;
         setChanged();
         level.playSound(null, getBlockPos(), SoundEvents.PLAYER_SPLASH, SoundSource.BLOCKS, 1.0F, 1.5F);
     }
 
     private void validateMaidPresence() {
-        if (pinnedMaidUUID == null) {
-            running = false;
+        if (cachedMaid == null) {
             return;
         }
 
         BlockPos center = getBlockPos().above(3);
-        AABB checkArea = new AABB(center).inflate(1);
+        AABB checkArea = new AABB(center).inflate(2);
 
         EntityMaid maid = getPinnedMaid();
         boolean maidValid = maid != null && checkArea.intersects(maid.getBoundingBox());
         boolean seatValid = pinSeatEntity != null && pinSeatEntity.isAlive();
 
         if (!maidValid || !seatValid) {
-            running = false;
-            pinnedMaidUUID = null;
             cachedMaid = null;
             if (pinSeatEntity != null) {
                 pinSeatEntity.discard();
@@ -260,17 +261,12 @@ public class TileMaidFusionController extends TileEntityMekanism {
     private void produceEnergy() {
         EntityMaid maid = getPinnedMaid();
         if (maid == null) {
-            running = false;
+            cachedMaid = null;
             return;
         }
 
         int fusionState = FusionState.get(maid);
         if (!FusionState.inFusion(fusionState)) {
-            return;
-        }
-
-        int currentHunger = maid.getHunger();
-        if (currentHunger <= 0) {
             return;
         }
 
@@ -281,7 +277,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
 
         int favorability = maid.getFavorability();
         double favorabilityFactor = 1.0 + (favorability / 384.0) * favorabilityMultiplier;
-        double hungerFactor = 1.0 + (currentHunger / 100.0) * hungerMultiplier;
+        double hungerFactor = 1.0 + (maid.getHunger() / 100.0) * hungerMultiplier;
 
         UUID maidUUID = maid.getUUID();
         double uuidPerturbation = 1.0 + (Math.sin(maidUUID.getMostSignificantBits()) * 0.5 + 0.5) * randomPerturbation;
@@ -360,18 +356,10 @@ public class TileMaidFusionController extends TileEntityMekanism {
     @Override
     public void saveAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        if (pinnedMaidUUID != null) {
-            tag.putUUID("PinnedMaid", pinnedMaidUUID);
-        }
-        tag.putBoolean("Running", running);
     }
 
     @Override
     public void loadAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        if (tag.hasUUID("PinnedMaid")) {
-            pinnedMaidUUID = tag.getUUID("PinnedMaid");
-        }
-        running = tag.getBoolean("Running");
     }
 }

@@ -44,12 +44,7 @@ public class PinSeatEntity extends Entity {
 
     @Override
     public void tick() {
-        if (level().isClientSide) {
-            return;
-        }
-        if (!isVehicle()) {
-            this.discard();
-        }
+        // 不自动销毁，由TileMaidFusionController管理生命周期
     }
 
     @Override
