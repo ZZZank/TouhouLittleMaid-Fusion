@@ -1,7 +1,7 @@
 package zank.mods.touhou_little_maid_fusion;
 
 import com.mojang.serialization.Codec;
-import mekanism.common.content.blocktype.Machine;
+import mekanism.generators.common.content.blocktype.Generator;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.registration.MekanismDeferredHolder;
 import mekanism.common.registration.impl.*;
@@ -39,8 +39,8 @@ public interface TouhouLittleMaidFusionRegistries {
     }
 
     class BlockTypes {
-        public static final Machine<TileMaidFusionController> CONTROLLER = Machine.MachineBuilder
-            .createMachine(() -> TileEntityTypes.CONTROLLER, () -> "todo.lang.key.here")
+        public static final Generator<TileMaidFusionController> CONTROLLER = Generator.GeneratorBuilder
+            .createGenerator(() -> TileEntityTypes.CONTROLLER, () -> "todo.lang.key.here")
             .withGui(() -> ContainerTypes.CONTROLLER)
             .withEnergyConfig(Config.ENERGY_BUFFER_CAPACITY)
             .build();

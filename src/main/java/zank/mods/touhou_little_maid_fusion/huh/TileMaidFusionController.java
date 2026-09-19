@@ -18,16 +18,11 @@ import com.github.tartaricacid.touhoulittlemaid.init.InitItems;
 import mekanism.api.Action;
 import mekanism.api.AutomationType;
 import mekanism.api.IContentsListener;
-import mekanism.common.capabilities.energy.MachineEnergyContainer;
-import mekanism.common.capabilities.holder.energy.EnergyContainerHelper;
-import mekanism.common.capabilities.holder.energy.IEnergyContainerHolder;
 import mekanism.common.capabilities.holder.slot.IInventorySlotHolder;
 import mekanism.common.capabilities.holder.slot.InventorySlotHelper;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
-import mekanism.common.tile.base.TileEntityMekanism;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -46,9 +41,8 @@ import zank.mods.touhou_little_maid_fusion.util.FusionState;
 /**
  * @author ZZZank
  */
-public class TileMaidFusionController extends TileEntityMekanism {
+public class TileMaidFusionController extends TileEntityGeneratorCopy {
 
-    private MachineEnergyContainer<TileMaidFusionController> energyContainer;
     private BasicInventorySlot inputSlot;
     private OutputInventorySlot outputSlot;
 
@@ -61,15 +55,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
     private long lastEnergyProduced = 0;
 
     public TileMaidFusionController(BlockPos pos, BlockState state) {
-        super(TouhouLittleMaidFusionRegistries.Blocks.CONTROLLER, pos, state);
-    }
-
-    @NotNull
-    @Override
-    protected IEnergyContainerHolder getInitialEnergyContainers(IContentsListener listener) {
-        EnergyContainerHelper builder = EnergyContainerHelper.forSide(facingSupplier);
-        builder.addContainer(energyContainer = MachineEnergyContainer.input(this, listener));
-        return builder.build();
+        super(TouhouLittleMaidFusionRegistries.Blocks.CONTROLLER, pos, state, Config.ENERGY_BUFFER_CAPACITY);
     }
 
     @NotNull
@@ -85,10 +71,6 @@ public class TileMaidFusionController extends TileEntityMekanism {
         outputSlot.setSlotOverlay(SlotOverlay.OUTPUT);
 
         return builder.build();
-    }
-
-    public MachineEnergyContainer<TileMaidFusionController> getEnergyContainer() {
-        return energyContainer;
     }
 
     public BasicInventorySlot getInputSlot() {
@@ -124,6 +106,11 @@ public class TileMaidFusionController extends TileEntityMekanism {
     @Nullable
     public EntityMaid getCachedMaid() {
         return cachedMaid;
+    }
+
+    @Override
+    public long getProductionRate() {
+        return lastEnergyProduced;
     }
 
     @Override
@@ -163,7 +150,6 @@ public class TileMaidFusionController extends TileEntityMekanism {
             produceEnergy();
         }
 
-        pushEnergy();
         return sendUpdatePacket;
     }
 
@@ -188,7 +174,6 @@ public class TileMaidFusionController extends TileEntityMekanism {
     private void tryPinMaid() {
         CustomData maidInfo = inputSlot.getStack().get(InitDataComponent.MAID_INFO);
         if (maidInfo == null || !maidInfo.contains("Owner")) {
-            // @see com.github.tartaricacid.touhoulittlemaid.item.AbstractStoreMaidItem#spawnFromStore(...)
             return;
         }
 
@@ -230,7 +215,6 @@ public class TileMaidFusionController extends TileEntityMekanism {
 
         outputSlot.insertItem(newSoulCard, Action.EXECUTE, AutomationType.INTERNAL);
 
-        // 销毁PinSeatEntity（会自动让女仆下骑乘）
         if (pinSeatEntity != null) {
             pinSeatEntity.discard();
             pinSeatEntity = null;
@@ -268,11 +252,19 @@ public class TileMaidFusionController extends TileEntityMekanism {
         EntityMaid maid = getPinnedMaid();
         if (maid == null) {
             cachedMaid = null;
+            lastEnergyProduced = 0;
             return;
         }
 
         int fusionState = FusionState.get(maid);
         if (!FusionState.inFusion(fusionState)) {
+            lastEnergyProduced = 0;
+            return;
+        }
+
+        int currentHunger = maid.getHunger();
+        if (currentHunger <= 0) {
+            lastEnergyProduced = 0;
             return;
         }
 
@@ -283,7 +275,7 @@ public class TileMaidFusionController extends TileEntityMekanism {
 
         int favorability = maid.getFavorability();
         double favorabilityFactor = 1.0 + (favorability / 384.0) * favorabilityMultiplier;
-        double hungerFactor = 1.0 + (maid.getHunger() / 100.0) * hungerMultiplier;
+        double hungerFactor = 1.0 + (currentHunger / 100.0) * hungerMultiplier;
 
         UUID maidUUID = maid.getUUID();
         double uuidPerturbation = 1.0 + (Math.sin(maidUUID.getMostSignificantBits()) * 0.5 + 0.5) * randomPerturbation;
@@ -291,42 +283,11 @@ public class TileMaidFusionController extends TileEntityMekanism {
         long totalEnergy = (long) (baseMultiplier * favorabilityFactor * hungerFactor * uuidPerturbation);
 
         if (totalEnergy > 0) {
-            energyContainer.insert(totalEnergy, Action.EXECUTE, AutomationType.INTERNAL);
+            getEnergyContainer().insert(totalEnergy, Action.EXECUTE, AutomationType.INTERNAL);
             lastEnergyProduced = totalEnergy;
             setChanged();
         } else {
             lastEnergyProduced = 0;
-        }
-    }
-
-    private void pushEnergy() {
-        if (level == null || energyContainer.isEmpty()) {
-            return;
-        }
-
-        for (Direction direction : Direction.values()) {
-            BlockPos neighborPos = getBlockPos().relative(direction);
-            var cap = level.getCapability(
-                net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
-                neighborPos,
-                direction.getOpposite()
-            );
-            if (cap != null && cap.canReceive()) {
-                long extracted = energyContainer.extract(
-                    energyContainer.getEnergy(),
-                    Action.SIMULATE,
-                    AutomationType.INTERNAL
-                );
-                if (extracted > 0) {
-                    int inserted = cap.receiveEnergy(
-                        (int) Math.min(extracted, Integer.MAX_VALUE),
-                        false
-                    );
-                    if (inserted > 0) {
-                        energyContainer.extract(inserted, Action.EXECUTE, AutomationType.INTERNAL);
-                    }
-                }
-            }
         }
     }
 
@@ -352,7 +313,6 @@ public class TileMaidFusionController extends TileEntityMekanism {
                 outputSlot.getStack()
             );
         }
-        // 销毁PinSeatEntity
         if (pinSeatEntity != null) {
             pinSeatEntity.discard();
             pinSeatEntity = null;
