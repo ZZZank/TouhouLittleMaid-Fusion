@@ -2,7 +2,10 @@ package zank.mods.touhou_little_maid_fusion.huh;
 
 import java.util.UUID;
 
+import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.container.slot.SlotOverlay;
+import mekanism.common.inventory.container.sync.SyncableBoolean;
+import mekanism.common.inventory.container.sync.SyncableLong;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -135,6 +138,13 @@ public class TileMaidFusionController extends TileEntityMekanism {
     @Nullable
     public EntityMaid getCachedMaid() {
         return cachedMaid;
+    }
+
+    @Override
+    public void addContainerTrackers(MekanismContainer container) {
+        super.addContainerTrackers(container);
+        container.track(SyncableBoolean.create(this::isRunning, value -> running = value));
+        container.track(SyncableLong.create(this::getLastEnergyProduced, value -> lastEnergyProduced = value));
     }
 
     @Override
