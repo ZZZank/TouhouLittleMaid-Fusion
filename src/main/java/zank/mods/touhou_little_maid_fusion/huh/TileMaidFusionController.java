@@ -3,6 +3,7 @@ package zank.mods.touhou_little_maid_fusion.huh;
 import java.util.UUID;
 import java.util.function.Predicate;
 
+import mekanism.api.RelativeSide;
 import mekanism.common.inventory.container.MekanismContainer;
 import mekanism.common.inventory.container.slot.SlotOverlay;
 import mekanism.common.inventory.container.sync.SyncableInt;
@@ -97,6 +98,14 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
 
     public boolean isRunning() {
         return cachedMaid != null;
+    }
+
+    private static final RelativeSide[] SIDES_EXCLUDING_UP = new RelativeSide[]{RelativeSide.BACK, RelativeSide.LEFT, RelativeSide.RIGHT, RelativeSide.TOP, RelativeSide.BOTTOM};
+
+    @NotNull
+    @Override
+    protected RelativeSide[] getEnergySides() {
+        return SIDES_EXCLUDING_UP;
     }
 
     public long getLastEnergyProduced() {
