@@ -4,11 +4,13 @@ import com.github.tartaricacid.touhoulittlemaid.api.event.MaidAttackEvent;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidTickEvent;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import mekanism.common.registries.MekanismDamageTypes;
+import mekanism.generators.common.registries.GeneratorsCreativeTabs;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -42,6 +44,15 @@ public class TouhouLittleMaidFusion {
 
         // Register config
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    @SubscribeEvent
+    static void fillCreativeTab(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey().equals(GeneratorsCreativeTabs.GENERATORS.getKey())) {
+            for (var itemHolder : TouhouLittleMaidFusionRegistries.Blocks.BLOCKS.getSecondaryEntries()) {
+                event.accept(itemHolder.value());
+            }
+        }
     }
 
     @SubscribeEvent(priority = EventPriority.HIGH)
