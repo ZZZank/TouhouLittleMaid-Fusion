@@ -4,6 +4,8 @@ import com.github.tartaricacid.touhoulittlemaid.api.event.MaidAttackEvent;
 import com.github.tartaricacid.touhoulittlemaid.api.event.MaidTickEvent;
 import com.github.tartaricacid.touhoulittlemaid.entity.passive.EntityMaid;
 import mekanism.common.registries.MekanismDamageTypes;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -52,6 +54,11 @@ public class TouhouLittleMaidFusion {
 
             // Enter fusion state
             FusionState.set(maid, Config.FUSION_DURATION_TICKS.getAsInt());
+
+            var fireResistance = maid.getEffect(MobEffects.FIRE_RESISTANCE);
+            if (fireResistance == null || fireResistance.endsWithin(Config.FUSION_DURATION_TICKS.getAsInt())) {
+                maid.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, Config.FUSION_DURATION_TICKS.getAsInt() * 2));
+            }
         }
     }
 
