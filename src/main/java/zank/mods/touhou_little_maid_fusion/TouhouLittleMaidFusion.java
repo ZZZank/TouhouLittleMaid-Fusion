@@ -52,12 +52,13 @@ public class TouhouLittleMaidFusion {
             // Cancel the damage
             event.setCanceled(true);
 
+            int fusionTicks = 20;
             // Enter fusion state
-            FusionState.set(maid, Config.FUSION_DURATION_TICKS.getAsInt());
+            FusionState.set(maid, fusionTicks);
 
             var fireResistance = maid.getEffect(MobEffects.FIRE_RESISTANCE);
-            if (fireResistance == null || fireResistance.endsWithin(Config.FUSION_DURATION_TICKS.getAsInt())) {
-                maid.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, Config.FUSION_DURATION_TICKS.getAsInt() * 2));
+            if (fireResistance == null || fireResistance.endsWithin(fusionTicks)) {
+                maid.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, fusionTicks * 2));
             }
         }
     }
@@ -76,11 +77,5 @@ public class TouhouLittleMaidFusion {
 
         // Tick fusion state countdown
         FusionState.set(maid, fusionState - 1);
-
-        // Consume hunger while in fusion state (per tick)
-        int currentHunger = maid.getHunger();
-        int drainPerTick = Math.max(1, Config.FUSION_HUNGER_DRAIN.getAsInt() / 20);
-        int newHunger = Math.max(0, currentHunger - drainPerTick);
-        maid.setHunger(newHunger);
     }
 }

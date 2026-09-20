@@ -5,15 +5,6 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    // === Fusion State ===
-    public static final ModConfigSpec.IntValue FUSION_HUNGER_DRAIN = BUILDER
-            .comment("How much hunger the maid loses per second while in fusion state (in hundredths)")
-            .defineInRange("fusionHungerDrain", 1, 0, 100);
-
-    public static final ModConfigSpec.IntValue FUSION_DURATION_TICKS = BUILDER
-            .comment("How long (in ticks) the fusion state lasts after being hit by the laser")
-            .defineInRange("fusionDurationTicks", 20, 1, 72000);
-
     // === Energy Production ===
     public static final ModConfigSpec.DoubleValue ENERGY_PRODUCTION_MULTIPLIER = BUILDER
             .comment("Base energy production multiplier per tick while maid is in fusion state")
