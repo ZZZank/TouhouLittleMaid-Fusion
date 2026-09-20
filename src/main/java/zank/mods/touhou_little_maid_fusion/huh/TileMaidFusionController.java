@@ -157,8 +157,7 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
             return;
         }
 
-        BlockPos center = getBlockPos().above(3);
-        AABB searchArea = new AABB(center).inflate(2);
+        AABB searchArea = new AABB(getBlockPos().above(3)).inflate(1);
 
         for (EntityMaid maid : serverLevel.getEntitiesOfClass(EntityMaid.class, searchArea, Entity::isAlive)) {
             cachedMaid = maid;
@@ -217,8 +216,7 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
     }
 
     private void validateMaidPresence() {
-        BlockPos center = getBlockPos().above(3);
-        AABB checkArea = new AABB(center).inflate(2);
+        AABB checkArea = new AABB(getBlockPos().above(3)).inflate(1);
 
         EntityMaid maid = getPinnedMaid();
         if (maid == null || !checkArea.intersects(maid.getBoundingBox())) {
