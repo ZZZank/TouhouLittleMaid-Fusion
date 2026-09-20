@@ -28,7 +28,7 @@ public interface TouhouLittleMaidFusionRegistries {
     class Blocks {
         public static final BlockDeferredRegister BLOCKS = new BlockDeferredRegister(MODID);
         public static final BlockRegistryObject<BlockMaidFusionController, ?> CONTROLLER = BLOCKS
-            .register("maid_fusion_controller", BlockMaidFusionController::new);
+            .registerDetails("maid_fusion_controller", BlockMaidFusionController::new);
     }
 
     class TileEntityTypes {
