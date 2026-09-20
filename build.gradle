@@ -47,7 +47,8 @@ repositories {
                 }
             }
             filter {
-                includeGroup "mekanism"
+                includeGroup("mekanism")
+                includeGroup("mezz.jei")
             }
         }
     }
@@ -76,6 +77,10 @@ neoForge {
     // Default run configurations.
     // These can be tweaked, removed, or duplicated as needed.
     runs {
+        configureEach {
+            it.jvmArgument("-Xmx1g")
+        }
+
         client {
             client()
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
@@ -145,6 +150,11 @@ dependencies {
     // Mekanism-1.21.1-10.7.19.85.jar
     implementation("mekanism:Mekanism:1.21.1-10.7.19.85")
     implementation("mekanism:Mekanism:1.21.1-10.7.19.85:generators")
+
+    runtimeOnly("curse.maven:modernfix-790626:8774737")
+
+    compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.56.0.441")
+    runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.56.0.441")
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
