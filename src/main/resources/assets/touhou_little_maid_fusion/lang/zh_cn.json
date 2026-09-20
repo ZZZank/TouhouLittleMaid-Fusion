@@ -4,7 +4,6 @@
   "description.touhou_little_maid_fusion.maid_fusion_controller": "女仆处于聚变状态时产生能量。输出受女仆好感度和女仆自己的随机扰动影响。\n狐聚变！",
   "item.touhou_little_maid_fusion.maid_fusion_controller": "女仆聚变控制器",
   "container.touhou_little_maid_fusion.maid_fusion_controller": "女仆聚变控制器",
-  "gui.touhou_little_maid_fusion.maid_pinned": "女仆已固定",
   "gui.touhou_little_maid_fusion.no_maid": "无女仆",
   "gui.touhou_little_maid_fusion.favorability": "好感度: %d",
 

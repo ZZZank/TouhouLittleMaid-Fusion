@@ -24,12 +24,10 @@ import mekanism.common.capabilities.holder.slot.InventorySlotHelper;
 import mekanism.common.inventory.slot.BasicInventorySlot;
 import mekanism.common.inventory.slot.OutputInventorySlot;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.state.BlockState;
@@ -51,7 +49,7 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
     private EntityMaid cachedMaid;
 
     private int tickCounter = 0;
-    private long lastEnergyProduced = 0;
+    private long productionRate = 0;
 
     public TileMaidFusionController(BlockPos pos, BlockState state) {
         super(TouhouLittleMaidFusionRegistries.Blocks.CONTROLLER, pos, state, Config.ENERGY_BUFFER_CAPACITY);
@@ -96,13 +94,9 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
         return SIDES_EXCLUDING_UP;
     }
 
-    public long getLastEnergyProduced() {
-        return lastEnergyProduced;
-    }
-
     @Override
     public long getProductionRate() {
-        return lastEnergyProduced;
+        return productionRate;
     }
 
     @Override
@@ -114,7 +108,7 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
             () -> this.cachedMaid != null ? this.cachedMaid.getId() : -1,
             (id) -> this.cachedMaid = this.level != null && this.level.getEntity(id) instanceof EntityMaid maid ? maid : null));
 
-        container.track(SyncableLong.create(this::getLastEnergyProduced, value -> lastEnergyProduced = value));
+        container.track(SyncableLong.create(this::getProductionRate, value -> productionRate = value));
     }
 
     @Override
@@ -125,7 +119,7 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
     @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
-        tickCounter++;
+        tickCounter = tickCounter == Integer.MAX_VALUE ? 0 : tickCounter + 1;
 
         var maid = getPinnedMaid();
 
@@ -228,13 +222,13 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
     private void produceEnergy() {
         EntityMaid maid = getPinnedMaid();
         if (maid == null) {
-            lastEnergyProduced = 0;
+            productionRate = 0;
             return;
         }
 
         int fusionState = FusionState.get(maid);
         if (!FusionState.inFusion(fusionState)) {
-            lastEnergyProduced = 0;
+            productionRate = 0;
             return;
         }
 
@@ -246,52 +240,18 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
         double favorabilityFactor = 1.0 + (favorability / 384.0) * favorabilityMultiplier;
 
         UUID maidUUID = maid.getUUID();
-        double uuidPerturbation = 1.0 + (Math.sin(maidUUID.getMostSignificantBits()) * 0.5 + 0.5) * randomPerturbation;
+        double uuidPerturbation = 1.0 + (Math.sin(maidUUID.hashCode()) * 0.5 + 0.5) * randomPerturbation;
 
         long totalEnergy = (long) (baseMultiplier * favorabilityFactor * uuidPerturbation);
 
         if (totalEnergy > 0) {
             getEnergyContainer().insert(totalEnergy, Action.EXECUTE, AutomationType.INTERNAL);
             setActive(true);
-            lastEnergyProduced = totalEnergy;
+            productionRate = totalEnergy;
             setChanged();
         } else {
             setActive(false);
-            lastEnergyProduced = 0;
+            productionRate = 0;
         }
-    }
-
-    public void dropItems() {
-        if (level == null) {
-            return;
-        }
-        if (!inputSlot.isEmpty()) {
-            Containers.dropItemStack(
-                level,
-                getBlockPos().getX() + 0.5,
-                getBlockPos().getY() + 0.5,
-                getBlockPos().getZ() + 0.5,
-                inputSlot.getStack()
-            );
-        }
-        if (!outputSlot.isEmpty()) {
-            Containers.dropItemStack(
-                level,
-                getBlockPos().getX() + 0.5,
-                getBlockPos().getY() + 0.5,
-                getBlockPos().getZ() + 0.5,
-                outputSlot.getStack()
-            );
-        }
-    }
-
-    @Override
-    public void saveAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-    }
-
-    @Override
-    public void loadAdditional(@NotNull CompoundTag tag, @NotNull HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
     }
 }

@@ -4,7 +4,6 @@
   "description.touhou_little_maid_fusion.maid_fusion_controller": "Places a Maid in fusion state to generate energy. Output is scaled by the Maid's favorability and a unique UUID-based factor. Use a Smart Slab to pin/recall the Maid.",
   "item.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller",
   "container.touhou_little_maid_fusion.maid_fusion_controller": "Maid Fusion Controller",
-  "gui.touhou_little_maid_fusion.maid_pinned": "Maid Pinned",
   "gui.touhou_little_maid_fusion.no_maid": "No Maid",
   "gui.touhou_little_maid_fusion.favorability": "Favorability: %d",
 

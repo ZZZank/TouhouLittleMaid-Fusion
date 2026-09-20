@@ -41,7 +41,7 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
             this::getMaidStatusText
         ));
         addRenderableWidget(new GuiEnergyTab(this, () -> List.of(
-            GeneratorsLang.PRODUCING_AMOUNT.translate(EnergyDisplay.of(tile.getLastEnergyProduced())),
+            GeneratorsLang.PRODUCING_AMOUNT.translate(EnergyDisplay.of(tile.getProductionRate())),
             MekanismLang.CAPACITY.translate(EnergyDisplay.of(tile.getEnergyContainer().getMaxEnergy()))
         )));
         addRenderableWidget(new GuiVerticalPowerBar(this, tile.getEnergyContainer(), 164, 15));
@@ -49,18 +49,13 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
 
     private List<Component> getMaidStatusText() {
         List<Component> lines = new ArrayList<>();
-        
-        if (tile.getPinnedMaid() != null) {
-            var maid = tile.getPinnedMaid();
-            if (maid != null) {
-                lines.add(maid.getDisplayName().copy().withStyle(ChatFormatting.GREEN));
-                lines.add(Component.translatable("gui.touhou_little_maid_fusion.favorability", maid.getFavorability()).withStyle(ChatFormatting.YELLOW));
-            } else {
-                lines.add(Component.translatable("gui.touhou_little_maid_fusion.maid_pinned").withStyle(ChatFormatting.GREEN));
-            }
+
+        var maid = tile.getPinnedMaid();
+        if (maid != null) {
+            lines.add(maid.getDisplayName().copy().withStyle(ChatFormatting.GREEN));
+            lines.add(Component.translatable("gui.touhou_little_maid_fusion.favorability", maid.getFavorability()).withStyle(ChatFormatting.YELLOW));
         } else {
-            lines.add(Component.translatable("gui.touhou_little_maid_fusion.no_maid")
-                .withStyle(ChatFormatting.GRAY));
+            lines.add(Component.translatable("gui.touhou_little_maid_fusion.no_maid").withStyle(ChatFormatting.GRAY));
         }
         
         return lines;
