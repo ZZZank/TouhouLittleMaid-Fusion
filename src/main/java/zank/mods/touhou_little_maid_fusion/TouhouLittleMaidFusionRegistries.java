@@ -5,6 +5,7 @@ import mekanism.generators.common.content.blocktype.Generator;
 import mekanism.common.inventory.container.tile.MekanismTileContainer;
 import mekanism.common.registration.MekanismDeferredHolder;
 import mekanism.common.registration.impl.*;
+import net.minecraft.Util;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -40,7 +41,7 @@ public interface TouhouLittleMaidFusionRegistries {
 
     class BlockTypes {
         public static final Generator<TileMaidFusionController> CONTROLLER = Generator.GeneratorBuilder
-            .createGenerator(() -> TileEntityTypes.CONTROLLER, () -> "todo.lang.key.here")
+            .createGenerator(() -> TileEntityTypes.CONTROLLER, () -> Util.makeDescriptionId("description", TouhouLittleMaidFusion.rl("maid_fusion_controller")))
             .withGui(() -> ContainerTypes.CONTROLLER)
             .withEnergyConfig(Config.ENERGY_BUFFER_CAPACITY)
             .build();
