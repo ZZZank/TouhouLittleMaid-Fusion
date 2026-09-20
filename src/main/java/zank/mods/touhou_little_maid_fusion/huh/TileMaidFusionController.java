@@ -49,8 +49,6 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
 
     @Nullable
     private EntityMaid cachedMaid;
-    @Nullable
-    private PinSeatEntity pinSeatEntity;
 
     private int tickCounter = 0;
     private long lastEnergyProduced = 0;
@@ -84,20 +82,10 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
 
     @Nullable
     public EntityMaid getPinnedMaid() {
-        if (cachedMaid != null && cachedMaid.isAlive()) {
-            return cachedMaid;
+        if (cachedMaid != null && !cachedMaid.isAlive()) {
+            cachedMaid = null;
         }
-        cachedMaid = null;
-        return null;
-    }
-
-    @Nullable
-    public PinSeatEntity getPinSeatEntity() {
-        return pinSeatEntity;
-    }
-
-    public boolean isRunning() {
-        return cachedMaid != null;
+        return cachedMaid;
     }
 
     private static final RelativeSide[] SIDES_EXCLUDING_UP = new RelativeSide[]{RelativeSide.BACK, RelativeSide.LEFT, RelativeSide.RIGHT, RelativeSide.TOP, RelativeSide.BOTTOM};
@@ -110,11 +98,6 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
 
     public long getLastEnergyProduced() {
         return lastEnergyProduced;
-    }
-
-    @Nullable
-    public EntityMaid getCachedMaid() {
-        return cachedMaid;
     }
 
     @Override
@@ -135,34 +118,41 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
     }
 
     @Override
+    public boolean canFunction() {
+        return super.canFunction() && cachedMaid != null;
+    }
+
+    @Override
     protected boolean onUpdateServer() {
         boolean sendUpdatePacket = super.onUpdateServer();
         tickCounter++;
 
-        if (cachedMaid == null) {
-            tryRecoverFromSeat();
+        var maid = getPinnedMaid();
+
+        if (maid == null) {
+            tryRecoverMaid();
         }
 
-        if (cachedMaid != null && tickCounter % 20 == 0) {
+        if (maid != null && tickCounter % 20 == 0) {
             validateMaidPresence();
         }
 
-        if (cachedMaid == null && inputSlot.getStack().is(InitItems.SMART_SLAB_HAS_MAID) && outputSlot.isEmpty()) {
+        if (maid == null && inputSlot.getStack().is(InitItems.SMART_SLAB_HAS_MAID) && outputSlot.isEmpty()) {
             tryPinMaid();
         }
 
-        if (cachedMaid != null && inputSlot.getStack().is(InitItems.SMART_SLAB_EMPTY) && outputSlot.isEmpty()) {
+        if (maid != null && inputSlot.getStack().is(InitItems.SMART_SLAB_EMPTY) && outputSlot.isEmpty()) {
             tryRecallMaid();
         }
 
-        if (cachedMaid != null) {
+        if (canFunction()) {
             produceEnergy();
         }
 
         return sendUpdatePacket;
     }
 
-    private void tryRecoverFromSeat() {
+    private void tryRecoverMaid() {
         if (level == null || !(level instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -170,13 +160,10 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
         BlockPos center = getBlockPos().above(3);
         AABB searchArea = new AABB(center).inflate(2);
 
-        for (PinSeatEntity seat : serverLevel.getEntitiesOfClass(PinSeatEntity.class, searchArea, Entity::isAlive)) {
-            if (seat.isVehicle() && seat.getFirstPassenger() instanceof EntityMaid maid) {
-                cachedMaid = maid;
-                pinSeatEntity = seat;
-                setChanged();
-                return;
-            }
+        for (EntityMaid maid : serverLevel.getEntitiesOfClass(EntityMaid.class, searchArea, Entity::isAlive)) {
+            cachedMaid = maid;
+            setChanged();
+            break;
         }
     }
 
@@ -199,7 +186,6 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
         seat.moveTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, 0, 0);
         level.addFreshEntity(seat);
         maid.startRiding(seat);
-        pinSeatEntity = seat;
 
         outputSlot.insertItem(InitItems.SMART_SLAB_EMPTY.toStack(), Action.EXECUTE, AutomationType.INTERNAL);
 
@@ -224,11 +210,6 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
 
         outputSlot.insertItem(newSoulCard, Action.EXECUTE, AutomationType.INTERNAL);
 
-        if (pinSeatEntity != null) {
-            pinSeatEntity.discard();
-            pinSeatEntity = null;
-        }
-
         maid.discard();
         cachedMaid = null;
         setChanged();
@@ -236,23 +217,12 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
     }
 
     private void validateMaidPresence() {
-        if (cachedMaid == null) {
-            return;
-        }
-
         BlockPos center = getBlockPos().above(3);
         AABB checkArea = new AABB(center).inflate(2);
 
         EntityMaid maid = getPinnedMaid();
-        boolean maidValid = maid != null && checkArea.intersects(maid.getBoundingBox());
-        boolean seatValid = pinSeatEntity != null && pinSeatEntity.isAlive();
-
-        if (!maidValid || !seatValid) {
+        if (maid == null || !checkArea.intersects(maid.getBoundingBox())) {
             cachedMaid = null;
-            if (pinSeatEntity != null) {
-                pinSeatEntity.discard();
-                pinSeatEntity = null;
-            }
             setChanged();
         }
     }
@@ -260,7 +230,6 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
     private void produceEnergy() {
         EntityMaid maid = getPinnedMaid();
         if (maid == null) {
-            cachedMaid = null;
             lastEnergyProduced = 0;
             return;
         }
@@ -315,10 +284,6 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
                 getBlockPos().getZ() + 0.5,
                 outputSlot.getStack()
             );
-        }
-        if (pinSeatEntity != null) {
-            pinSeatEntity.discard();
-            pinSeatEntity = null;
         }
     }
 

@@ -50,7 +50,7 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
     private List<Component> getMaidStatusText() {
         List<Component> lines = new ArrayList<>();
         
-        if (tile.isRunning()) {
+        if (tile.getPinnedMaid() != null) {
             var maid = tile.getPinnedMaid();
             if (maid != null) {
                 lines.add(maid.getDisplayName().copy().withStyle(ChatFormatting.GREEN));
