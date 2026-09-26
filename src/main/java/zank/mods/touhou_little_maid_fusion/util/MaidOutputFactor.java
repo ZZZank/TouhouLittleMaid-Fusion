@@ -12,7 +12,7 @@ public interface MaidOutputFactor {
      * Shared by server-side energy production and client-side GUI display.
      */
     static double favorability(int favorability) {
-        return 1.0 + (favorability / 384.0) * Config.FAVORABILITY_ENERGY_MULTIPLIER.getAsDouble();
+        return 1.0 + (favorability / 100.0) * Config.FAVORABILITY_ENERGY_MULTIPLIER.getAsDouble();
     }
 
     /**
