@@ -42,8 +42,16 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: DataGen
+        run: ./gradlew runData
+
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: capture build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: build/libs/
 
       - name: publish
         if: ${{ inputs.publish }}
