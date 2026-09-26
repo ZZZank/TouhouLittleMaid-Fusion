@@ -8,7 +8,7 @@ public class Config {
     // === Energy Production ===
     public static final ModConfigSpec.DoubleValue ENERGY_PRODUCTION_MULTIPLIER = BUILDER
             .comment("Base energy production multiplier per tick while maid is in fusion state")
-            .defineInRange("energyProductionMultiplier", 10000.0, 0.0, 1_000_000.0);
+            .defineInRange("energyProductionMultiplier", 1000000.0, 0.0, 1_000_000.0);
 
     public static final ModConfigSpec.DoubleValue FAVORABILITY_ENERGY_MULTIPLIER = BUILDER
             .comment("How much favorability affects energy production (multiplied with favorability/100)")
@@ -20,7 +20,7 @@ public class Config {
 
     public static final ModConfigSpec.LongValue ENERGY_BUFFER_CAPACITY = BUILDER
             .comment("Maximum energy the controller can store (in FE)")
-            .defineInRange("energyBufferCapacity", 100_000_000L, 1L, Long.MAX_VALUE);
+            .defineInRange("energyBufferCapacity", 10000000L, 1L, Long.MAX_VALUE);
 
     static final ModConfigSpec SPEC = BUILDER.build();
 }
