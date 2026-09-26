@@ -10,6 +10,13 @@ on:
         default: false
         required: false
         description: Publish built mod file
+      release_type:
+        type: choice
+        options:
+          - release
+          - beta
+          - alpha
+        default: release
 
 jobs:
   build:
@@ -40,7 +47,7 @@ jobs:
 
       - name: publish
         if: ${{ inputs.publish }}
-        run: ./gradlew publishMod
+        run: ./gradlew publishMod -Ppublish.release_type=${{ inputs.release_type }} --no-configuration-cache
         env:
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
           CURSE_TOKEN: ${{ secrets.CURSE_TOKEN }}

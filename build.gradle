@@ -257,6 +257,12 @@ publisher {
         apiKeys { github(key) }
     }
 
+    if (project.hasProperty("publish.release_type")
+        && project.property("publish.release_type") instanceof String releaseType
+        && !releaseType.empty) {
+        versionType.set(releaseType)
+    }
+
     // Enable Debug mode. When enabled, no files will actually be uploaded
     debug.set(false)
 
