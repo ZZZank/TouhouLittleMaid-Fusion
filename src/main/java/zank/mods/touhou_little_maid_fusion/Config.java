@@ -14,9 +14,9 @@ public class Config {
             .comment("How much favorability affects energy production (multiplied with favorability/100)")
             .defineInRange("favorabilityEnergyMultiplier", 1.0, 0.0, 100.0);
 
-    public static final ModConfigSpec.DoubleValue RANDOM_PERTURBATION_MULTIPLIER = BUILDER
-            .comment("How much the UUID-based random perturbation affects energy production")
-            .defineInRange("randomPerturbationMultiplier", 0.2, 0.0, 100.0);
+    public static final ModConfigSpec.DoubleValue PER_MAID_PRODUCTION_VARIATION = BUILDER
+            .comment("Per-maid production variation derived from UUID (fixed per maid)")
+            .defineInRange("perMaidProductionVariation", 0.2, 0.0, 100.0);
 
     public static final ModConfigSpec.LongValue ENERGY_BUFFER_CAPACITY = BUILDER
             .comment("Maximum energy the controller can store (in FE)")

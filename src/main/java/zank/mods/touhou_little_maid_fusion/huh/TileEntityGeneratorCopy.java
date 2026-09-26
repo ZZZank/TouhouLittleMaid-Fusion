@@ -23,8 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * @see #getProductionRate()
  * Generator -- a block that produces energy. It has a certain amount of fuel it can store as well as an output rate.
+ * @see #getProductionRate()
  */
 public abstract class TileEntityGeneratorCopy extends TileEntityMekanism {
 

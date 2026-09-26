@@ -1,6 +1,5 @@
 package zank.mods.touhou_little_maid_fusion.huh;
 
-import java.util.UUID;
 import java.util.function.Predicate;
 
 import mekanism.api.RelativeSide;
@@ -36,6 +35,7 @@ import zank.mods.touhou_little_maid_fusion.Config;
 import zank.mods.touhou_little_maid_fusion.TouhouLittleMaidFusionRegistries;
 import zank.mods.touhou_little_maid_fusion.entity.PinSeatEntity;
 import zank.mods.touhou_little_maid_fusion.util.FusionState;
+import zank.mods.touhou_little_maid_fusion.util.MaidOutputFactor;
 
 /**
  * @author ZZZank
@@ -232,17 +232,11 @@ public class TileMaidFusionController extends TileEntityGeneratorCopy {
             return;
         }
 
-        double baseMultiplier = Config.ENERGY_PRODUCTION_MULTIPLIER.getAsDouble();
-        double favorabilityMultiplier = Config.FAVORABILITY_ENERGY_MULTIPLIER.getAsDouble();
-        double randomPerturbation = Config.RANDOM_PERTURBATION_MULTIPLIER.getAsDouble();
+        double baseEnergy = Config.ENERGY_PRODUCTION_MULTIPLIER.getAsDouble();
+        double favorabilityFactor = MaidOutputFactor.favorability(maid.getFavorability());
+        double variationFactor = MaidOutputFactor.variation(maid.getUUID());
 
-        int favorability = maid.getFavorability();
-        double favorabilityFactor = 1.0 + (favorability / 384.0) * favorabilityMultiplier;
-
-        UUID maidUUID = maid.getUUID();
-        double uuidPerturbation = 1.0 + (Math.sin(maidUUID.hashCode()) * 0.5 + 0.5) * randomPerturbation;
-
-        long totalEnergy = (long) (baseMultiplier * favorabilityFactor * uuidPerturbation);
+        long totalEnergy = (long) (baseEnergy * favorabilityFactor * variationFactor);
 
         if (totalEnergy > 0) {
             getEnergyContainer().insert(totalEnergy, Action.EXECUTE, AutomationType.INTERNAL);

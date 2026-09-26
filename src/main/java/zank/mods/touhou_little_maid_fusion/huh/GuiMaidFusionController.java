@@ -11,9 +11,11 @@ import mekanism.generators.common.GeneratorsLang;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import zank.mods.touhou_little_maid_fusion.util.MaidOutputFactor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author ZZZank
@@ -53,7 +55,18 @@ public class GuiMaidFusionController extends GuiMekanismTile<TileMaidFusionContr
         var maid = tile.getPinnedMaid();
         if (maid != null) {
             lines.add(maid.getDisplayName().copy().withStyle(ChatFormatting.GREEN));
-            lines.add(Component.translatable("gui.touhou_little_maid_fusion.favorability", maid.getFavorability()).withStyle(ChatFormatting.YELLOW));
+
+            double favorabilityImpact = (MaidOutputFactor.favorability(maid.getFavorability()) - 1.0) * 100.0;
+            lines.add(Component.translatable(
+                "gui.touhou_little_maid_fusion.favorability_impact",
+                String.format(Locale.ROOT, "%+.1f%%", favorabilityImpact)
+            ).withStyle(ChatFormatting.YELLOW));
+
+            double variationPercent = (MaidOutputFactor.variation(maid.getUUID()) - 1.0) * 100.0;
+            lines.add(Component.translatable(
+                "gui.touhou_little_maid_fusion.production_variation",
+                String.format(Locale.ROOT, "+%.1f%%", variationPercent)
+            ).withStyle(ChatFormatting.AQUA));
         } else {
             lines.add(Component.translatable("gui.touhou_little_maid_fusion.no_maid").withStyle(ChatFormatting.GRAY));
         }
