@@ -1,6 +1,15 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+    inputs:
+      publish:
+        type: boolean
+        default: false
+        required: false
+        description: Publish built mod file
 
 jobs:
   build:
@@ -28,3 +37,11 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: publish
+        if: ${{ inputs.publish }}
+        run: ./gradlew publishMod
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          CURSE_TOKEN: ${{ secrets.CURSE_TOKEN }}
+          # GITHUB_TOKEN is generated automatically, so it will publish whenever 'publish.github' is defined

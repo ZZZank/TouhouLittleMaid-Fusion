@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'net.neoforged.moddev' version '2.0.147'
     id 'idea'
+    id("com.hypherionmc.modutils.modpublisher") version "2.2.3"
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -152,6 +153,8 @@ dependencies {
     implementation("mekanism:Mekanism:1.21.1-10.7.19.85:generators")
 
     runtimeOnly("curse.maven:modernfix-790626:8774737")
+    runtimeOnly("curse.maven:catalogue-459701:6926815")
+    runtimeOnly("curse.maven:configured-457570:7276577")
 
     compileOnly("mezz.jei:jei-1.21.1-neoforge-api:19.56.0.441")
     runtimeOnly("mezz.jei:jei-1.21.1-neoforge:19.56.0.441")
@@ -227,4 +230,41 @@ idea {
         downloadSources = true
         downloadJavadoc = true
     }
+}
+
+void validatedProp(String prop, String env, java.util.function.BiConsumer<String, String> action) {
+    String projectID = project.hasProperty(prop) ? project.property(prop) : null
+    String apiKey = System.getenv(env)
+    if (projectID != null && !projectID.startsWith('[') && apiKey != null && !apiKey.isEmpty()) {
+        action.accept(projectID, apiKey)
+    }
+}
+
+// see: https://github.com/firstdarkdev/modpublisher
+publisher {
+    validatedProp("publish.modrinth", "MODRINTH_TOKEN") { id, key ->
+        modrinthID.set(id)
+        apiKeys { modrinth(key) }
+    }
+
+    validatedProp("publish.curseforge", "CURSE_TOKEN") { id, key ->
+        curseID.set(id)
+        apiKeys { curseforge(key) }
+    }
+
+    validatedProp("publish.github", "GITHUB_TOKEN") { id, key ->
+        githubRepo.set(id)
+        apiKeys { github(key) }
+    }
+
+    // Enable Debug mode. When enabled, no files will actually be uploaded
+    debug.set(false)
+
+    changelog.set(rootProject.file("CHANGELOG.md"))
+    projectVersion.set(mod_version)
+    // Example: 1.2.3 for 1.20.1 forge
+    displayName.set("${mod_version} for ${minecraft_version} ${"neoforge"}")
+    gameVersions.set([minecraft_version])
+    loaders.set(["neoforge"])
+    artifact.set(tasks.jar)
 }
